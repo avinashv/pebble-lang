@@ -9,6 +9,13 @@ OpCodeInfo opcode_table[] = {
     { "add", OP_ADD, 3 },
     { "sub", OP_SUB, 3 },
     { "halt", OP_HALT, 0 },
+    { "label", OP_LABEL, 1 },
+    { "jump", OP_JUMP, 1 },
+    { "jumpif", OP_JUMP_IF, 1 },
+    { "jumpnot", OP_JUMP_NOT, 1 },
+    { "eq", OP_EQ, 2 },
+    { "lt", OP_LT, 2 },
+    { "gt", OP_GT, 2 },
     { NULL, 0, 0 } // End of table marker
 };
 

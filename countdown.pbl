@@ -1,0 +1,10 @@
+set n 5
+
+label loop
+print n
+sub n 1 n
+gt n 0
+jumpif loop
+
+print "Liftoff!"
+halt

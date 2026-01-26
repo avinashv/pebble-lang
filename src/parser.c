@@ -6,6 +6,34 @@
 // Initialize parser state
 void parser_init(ParserState *state) {
     state->instruction_count = 0;
+    state->label_count = 0;
+}
+
+// Record a label's position in the instruction array
+void record_label(ParserState *state, const char *name, int address) {
+    if (state->label_count >= MAX_LABELS) {
+        printf("Error: maximum number of labels reached\n");
+        exit(1);
+    }
+
+    // Create a new label
+    strcpy(state->labels[state->label_count].name, name);
+    state->labels[state->label_count].address = address;
+    state->label_count++;
+}
+
+// Find a label by name
+int find_label(ParserState *state, const char *name) {
+    // Go through all labels
+    for (int i = 0; i < state->label_count; i++) {
+        // If the label name matches, return the address
+        if (strcmp(state->labels[i].name, name) == 0) {
+            return state->labels[i].address;
+        }
+    }
+    
+    // If no label is found, return -1
+    return -1;
 }
 
 // Move to the next token
@@ -96,6 +124,14 @@ static void parse_instruction(ParserState *parser, LexerState *lexer) {
     // Skip newline if present
     if (parser->current_token.type == TOK_NEWLINE) {
         parser_advance(parser, lexer);
+    }
+
+    // If the instruction is a label, record it
+    if (instr.opcode == OP_LABEL) {
+        record_label(parser, instr.operands[0].name, parser->instruction_count);
+
+        // Don't add label as an instruction, just record its position
+        return;
     }
 
     // Add the instruction to the program

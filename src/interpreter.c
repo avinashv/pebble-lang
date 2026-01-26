@@ -99,7 +99,80 @@ void run(RuntimeState *runtime, ParserState *parser) {
             }
             
             case OP_HALT:
-                return;  /* Stop execution */
+                return;  // Stop execution
+            
+            case OP_LABEL:
+                // Labels don't do anything at runtime (and shouldn't appear here)
+                pc++;
+                break;
+            
+            case OP_JUMP: {
+                const char *target = inst->operands[0].name;
+                int addr = find_label(parser, target);
+                if (addr < 0) {
+                    printf("Error at line %d: undefined label '%s'\n",
+                           inst->line, target);
+                    exit(1);
+                }
+                pc = addr;
+                break;
+            }
+            
+            case OP_JUMP_IF: {
+                if (runtime->comparison_result) {
+                    const char *target = inst->operands[0].name;
+                    int addr = find_label(parser, target);
+                    if (addr < 0) {
+                        printf("Error at line %d: undefined label '%s'\n",
+                               inst->line, target);
+                        exit(1);
+                    }
+                    pc = addr;
+                } else {
+                    pc++;
+                }
+                break;
+            }
+            
+            case OP_JUMP_NOT: {
+                if (!runtime->comparison_result) {
+                    const char *target = inst->operands[0].name;
+                    int addr = find_label(parser, target);
+                    if (addr < 0) {
+                        printf("Error at line %d: undefined label '%s'\n",
+                               inst->line, target);
+                        exit(1);
+                    }
+                    pc = addr;
+                } else {
+                    pc++;
+                }
+                break;
+            }
+            
+            case OP_EQ: {
+                Value a = resolve(runtime, &inst->operands[0], inst->line, inst->col);
+                Value b = resolve(runtime, &inst->operands[1], inst->line, inst->col);
+                runtime->comparison_result = (a.integer == b.integer);
+                pc++;
+                break;
+            }
+            
+            case OP_LT: {
+                Value a = resolve(runtime, &inst->operands[0], inst->line, inst->col);
+                Value b = resolve(runtime, &inst->operands[1], inst->line, inst->col);
+                runtime->comparison_result = (a.integer < b.integer);
+                pc++;
+                break;
+            }
+            
+            case OP_GT: {
+                Value a = resolve(runtime, &inst->operands[0], inst->line, inst->col);
+                Value b = resolve(runtime, &inst->operands[1], inst->line, inst->col);
+                runtime->comparison_result = (a.integer > b.integer);
+                pc++;
+                break;
+            }
             
             default:
                 pc++;

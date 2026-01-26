@@ -24,10 +24,12 @@ typedef struct {
 // Maximum number of variables
 #define MAX_VARIABLES 1024
 
-// Runtime state
+// Runtime state (things that change during execution)
 typedef struct {
     Variable variables[MAX_VARIABLES];
     int variable_count;
+
+    int comparison_result; // Result of the last comparison operation
 } RuntimeState;
 
 // Initialize runtime state

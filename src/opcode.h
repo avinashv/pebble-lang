@@ -3,11 +3,18 @@
 
 // Opcode type
 typedef enum {
-    OP_SET,   // Set <var> <value>
-    OP_PRINT, // Print <value>
-    OP_ADD,   // Add <var> <value>
-    OP_SUB,   // Sub <var> <value>
-    OP_HALT,  // Halt the program
+    OP_SET,      // Set <var> <value>
+    OP_PRINT,    // Print <value>
+    OP_ADD,      // Add <var> <value>
+    OP_SUB,      // Sub <var> <value>
+    OP_HALT,     // Halt the program
+    OP_LABEL,    // Label <name>
+    OP_JUMP,     // Jump <label>
+    OP_JUMP_IF,  // Jump if <label>
+    OP_JUMP_NOT, // Jump if not <label>
+    OP_EQ,       // Equal <var> <value>
+    OP_LT,       // Less than <var> <value>
+    OP_GT,       // Greater than <var> <value>
 } OpCode;
 
 // Operand types
