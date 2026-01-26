@@ -1,0 +1,12 @@
+# Hello, World!
+
+set msg "Hello, World!"
+print msg
+
+read "Who are you? " name
+set msg "Hello, "
+concat msg name msg
+concat msg "!" msg
+print msg
+
+halt

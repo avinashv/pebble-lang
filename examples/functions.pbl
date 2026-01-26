@@ -1,0 +1,10 @@
+# Demonstrate subroutine calls
+
+set x 5
+call double
+print x
+halt
+
+label double
+    mul x 2 x
+    ret

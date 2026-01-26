@@ -1,0 +1,32 @@
+# Project Euler Problem 1
+# Find the sum of all multiples of 3 or 5 below 1000
+
+set sum 0
+set n 1
+
+label loop
+    lt n 1000
+    jumpnot done
+
+    # Check if divisible by 3
+    mod n 3 r3
+    eq r3 0
+    jumpif add_it
+
+    # Check if divisible by 5
+    mod n 5 r5
+    eq r5 0
+    jumpif add_it
+
+    jump next
+
+label add_it
+    add sum n sum
+
+label next
+    add n 1 n
+    jump loop
+
+label done
+    print sum
+    halt

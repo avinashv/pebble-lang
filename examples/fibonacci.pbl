@@ -1,0 +1,20 @@
+# Fibonacci calculator
+
+read "How many Fibonacci numbers? " count
+
+set a 1
+set b 1
+set i 0
+
+label loop
+    lt i count
+    jumpnot done
+    print a
+    add a b next
+    copy b a
+    copy next b
+    add i 1 i
+    jump loop
+
+label done
+    halt

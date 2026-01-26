@@ -1,0 +1,27 @@
+# Project Euler Problem 2
+# Sum of even Fibonacci numbers <= 4000000
+
+set a 1
+set b 2
+set sum 0
+
+label loop
+    gt b 4000000
+    jumpif done
+
+    # Check if b is even
+    mod b 2 r
+    eq r 0
+    jumpnot skip
+    add sum b sum
+
+label skip
+    # Next Fibonacci: a, b -> b, a+b
+    add a b next
+    copy b a
+    copy next b
+    jump loop
+
+label done
+    print sum
+    halt

@@ -4,6 +4,7 @@
 // Opcode type
 typedef enum {
     OP_SET,      // Set <dest> <value>
+    OP_COPY,     // Copy <src> <dest>
     OP_PRINT,    // Print <value>
     OP_READ,     // Read <prompt> <dest>
 
@@ -11,6 +12,7 @@ typedef enum {
     OP_SUB,      // Sub <var> <var> <dest>
     OP_MUL,      // Mul <var> <var> <dest>
     OP_DIV,      // Div <var> <var> <dest>
+    OP_MOD,      // Mod <var> <var> <dest>
 
     OP_HALT,     // Halt the program
     
@@ -32,7 +34,7 @@ typedef enum {
 // Operand types
 typedef enum {
     OPER_IDENT,  // Variable name
-    OPER_INT,    // Integer literal
+    OPER_NUMBER, // Numeric literal (integer or float)
     OPER_STRING, // String literal
 } OperandType;
 
@@ -40,7 +42,7 @@ typedef enum {
 typedef struct {
     OperandType type; // Type of operand
     char name[64];    // For OPER_IDENT
-    long value;       // For OPER_INT
+    double value;     // For OPER_NUMBER
     char string[256]; // For OPER_STRING
 } Operand;
 

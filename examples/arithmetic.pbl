@@ -1,0 +1,19 @@
+# Test integer and float arithmetic
+
+# Integers
+set a 10
+set b 3
+add a b sum
+print sum
+
+# Floats
+set x 3.14
+set y 2.0
+mul x y product
+print product
+
+# Mixed integers and floats
+add a x mixed
+print mixed
+
+halt

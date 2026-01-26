@@ -1,0 +1,29 @@
+# Project Euler Problem 6
+# Difference between sum of squares and square of sum
+
+set sum_of_sq 0
+set sum 0
+set n 1
+
+label loop
+    gt n 100
+    jumpif calc
+
+    # sum_of_sq += n*n
+    mul n n sq
+    add sum_of_sq sq sum_of_sq
+
+    # sum += n
+    add sum n sum
+
+    add n 1 n
+    jump loop
+
+label calc
+    # square of sum
+    mul sum sum sq_of_sum
+
+    # difference
+    sub sq_of_sum sum_of_sq result
+    print result
+    halt

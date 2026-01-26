@@ -1,0 +1,15 @@
+# Calculate a factorial of a given number
+
+read "Enter a number: " n
+copy n result
+
+label loop
+    sub n 1 n
+    gt n 1
+    jumpnot done
+    mul result n result
+    jump loop
+
+label done
+    print result
+    halt

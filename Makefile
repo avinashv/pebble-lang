@@ -13,7 +13,7 @@ HDRS = $(wildcard src/*.h)
 all: $(TARGET)
 
 $(TARGET): $(SRCS) $(HDRS)
-	$(CC) $(CFLAGS) -o $(TARGET) $(SRCS)
+	$(CC) $(CFLAGS) -o $(TARGET) $(SRCS) -lm
 
 # Build and run the test pebbleprogram
 run: $(TARGET)

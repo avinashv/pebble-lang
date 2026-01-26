@@ -52,8 +52,8 @@ static Operand parse_operand(ParserState *parser, LexerState *lexer) {
             strcpy(op.name, parser->current_token.text);
             break;
         case TOK_NUMBER:
-            op.type = OPER_INT;
-            op.value = atol(parser->current_token.text); // Convert string to long integer
+            op.type = OPER_NUMBER;
+            op.value = strtod(parser->current_token.text, NULL); // Convert string to double
             break;
         case TOK_STRING:
             op.type = OPER_STRING;

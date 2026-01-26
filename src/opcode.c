@@ -5,12 +5,14 @@
 // OpCode table
 OpCodeInfo opcode_table[] = {
     { "set", OP_SET, 2 },
+    { "copy", OP_COPY, 2 },
     { "print", OP_PRINT, 1 },
     { "read", OP_READ, 2 },
     { "add", OP_ADD, 3 },
     { "sub", OP_SUB, 3 },
     { "mul", OP_MUL, 3 },
     { "div", OP_DIV, 3 },
+    { "mod", OP_MOD, 3 },
     { "halt", OP_HALT, 0 },
     { "label", OP_LABEL, 1 },
     { "jump", OP_JUMP, 1 },

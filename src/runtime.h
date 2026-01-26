@@ -5,14 +5,14 @@
 
 // Runtime value types
 typedef enum {
-    VAL_INT,
+    VAL_NUMBER,
     VAL_STRING,
 } ValueType;
 
 // Runtime value structure
 typedef struct {
     ValueType type;
-    long integer;     // For VAL_INT
+    double number;    // For VAL_NUMBER
     char string[256]; // For VAL_STRING
 } Value;
 

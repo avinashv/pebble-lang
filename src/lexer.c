@@ -129,7 +129,7 @@ Token next_token(LexerState *state) {
         return tok;
     }
 
-    // Handle numbers
+    // Handle numbers (integers and floats)
     if (is_digit(ch)) {
         tok.type = TOK_NUMBER;
 
@@ -138,6 +138,15 @@ Token next_token(LexerState *state) {
         while (is_digit(peek(state)) && i < 63) {
             tok.text[i++] = advance(state);
         }
+
+        // Handle decimal point for floats
+        if (peek(state) == '.' && i < 63) {
+            tok.text[i++] = advance(state);  // Consume the '.'
+            while (is_digit(peek(state)) && i < 63) {
+                tok.text[i++] = advance(state);
+            }
+        }
+
         tok.text[i] = '\0';
         return tok;
     }
