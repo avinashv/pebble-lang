@@ -2,4 +2,8 @@ set x 10
 set y 20
 add x y result
 print result
+mul x y result
+print result
+div y x result
+print result
 halt

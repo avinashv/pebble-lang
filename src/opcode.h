@@ -7,6 +7,8 @@ typedef enum {
     OP_PRINT,    // Print <value>
     OP_ADD,      // Add <var> <value>
     OP_SUB,      // Sub <var> <value>
+    OP_MUL,      // Mul <var> <value>
+    OP_DIV,      // Div <var> <value>
     OP_HALT,     // Halt the program
     OP_LABEL,    // Label <name>
     OP_JUMP,     // Jump <label>

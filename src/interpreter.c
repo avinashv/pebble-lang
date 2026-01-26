@@ -97,6 +97,42 @@ void run(RuntimeState *runtime, ParserState *parser) {
                 pc++;
                 break;
             }
+
+            case OP_MUL: {
+                Value a = resolve(runtime, &inst->operands[0], inst->line, inst->col);
+                Value b = resolve(runtime, &inst->operands[1], inst->line, inst->col);
+                const char *dest = inst->operands[2].name;
+                
+                if (a.type != VAL_INT || b.type != VAL_INT) {
+                    printf("Error at line %d: mul requires integers\n", inst->line);
+                    exit(1);
+                }
+                
+                Value result;
+                result.type = VAL_INT;
+                result.integer = a.integer * b.integer;
+                set_variable(runtime, dest, result);
+                pc++;
+                break;
+            }
+
+            case OP_DIV: {
+                Value a = resolve(runtime, &inst->operands[0], inst->line, inst->col);
+                Value b = resolve(runtime, &inst->operands[1], inst->line, inst->col);
+                const char *dest = inst->operands[2].name;
+                
+                if (a.type != VAL_INT || b.type != VAL_INT) {
+                    printf("Error at line %d: div requires integers\n", inst->line);
+                    exit(1);
+                }
+                
+                Value result;
+                result.type = VAL_INT;
+                result.integer = a.integer / b.integer;
+                set_variable(runtime, dest, result);
+                pc++;
+                break;
+            }
             
             case OP_HALT:
                 return;  // Stop execution

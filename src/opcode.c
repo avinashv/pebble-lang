@@ -8,6 +8,8 @@ OpCodeInfo opcode_table[] = {
     { "print", OP_PRINT, 1 },
     { "add", OP_ADD, 3 },
     { "sub", OP_SUB, 3 },
+    { "mul", OP_MUL, 3 },
+    { "div", OP_DIV, 3 },
     { "halt", OP_HALT, 0 },
     { "label", OP_LABEL, 1 },
     { "jump", OP_JUMP, 1 },
