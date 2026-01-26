@@ -13,6 +13,6 @@ typedef struct {
 } PebbleState;
 
 // Initialize all interpreter state
-void pebble_init(PebbleState *state);
+void pebble_init(PebbleState *state, const char *source);
 
 #endif // PEBBLE_H

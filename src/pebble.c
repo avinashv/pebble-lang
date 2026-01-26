@@ -5,10 +5,10 @@
 #include "interpreter.h"
 
 // Initialize all interpreter state
-void pebble_init(PebbleState *state) {
+void pebble_init(PebbleState *state, const char *source) {
+    lexer_init(&state->lexer, source);
     parser_init(&state->parser);
     runtime_init(&state->runtime);
-    // Note: lexer_init is called separately with the source code
 }
 
 int main(int argc, char **argv) {
@@ -19,13 +19,12 @@ int main(int argc, char **argv) {
         return 1;
     }
 
+    // Read the file, error handling is done in read_file
+    char *source = read_file(argv[1]);
+    
     // Initialize interpreter state
     PebbleState state;
-    pebble_init(&state);
-
-    // Read the file and initialize lexer
-    char *source = read_file(argv[1]);
-    lexer_init(&state.lexer, source);
+    pebble_init(&state, source);
 
     // Parse the program
     parse(&state.parser, &state.lexer);
