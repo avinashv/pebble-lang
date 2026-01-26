@@ -1,6 +1,8 @@
 #ifndef PEBBLE_OPCODE_H
 #define PEBBLE_OPCODE_H
 
+#include "limits.h"
+
 // Opcode type
 typedef enum {
     OP_SET,      // Set <dest> <value>
@@ -40,19 +42,19 @@ typedef enum {
 
 // Operand structure
 typedef struct {
-    OperandType type; // Type of operand
-    char name[64];    // For OPER_IDENT
-    double value;     // For OPER_NUMBER
-    char string[256]; // For OPER_STRING
+    OperandType type;            // Type of operand
+    char name[MAX_IDENT_LEN];    // For OPER_IDENT
+    double value;                // For OPER_NUMBER
+    char string[MAX_STRING_LEN]; // For OPER_STRING
 } Operand;
 
 // Instruction structure
 typedef struct {
-    OpCode opcode;       // Opcode
-    Operand operands[3]; // Operands (max 3)
-    int operand_count;   // Number of operands
-    int line;            // Line number of the instruction
-    int col;             // Column number of the instruction
+    OpCode opcode;                  // Opcode
+    Operand operands[MAX_OPERANDS]; // Operands
+    int operand_count;              // Number of operands
+    int line;                       // Line number of the instruction
+    int col;                        // Column number of the instruction
 } Instruction;
 
 // OpCode information

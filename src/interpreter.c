@@ -3,6 +3,7 @@
 #include <string.h>
 #include <math.h>
 #include "interpreter.h"
+#include "limits.h"
 
 // Convert an operand to a runtime value.
 Value resolve(RuntimeState *runtime, Operand *op, int line, int col) {
@@ -72,7 +73,7 @@ void run(RuntimeState *runtime, ParserState *parser) {
             }
 
             case OP_READ: {
-                char input_buffer[256];
+                char input_buffer[MAX_STRING_LEN];
 
                 printf("%s", inst->operands[0].string);
                 fgets(input_buffer, sizeof(input_buffer), stdin);

@@ -2,6 +2,7 @@
 #define PEBBLE_RUNTIME_H
 
 #include <stdbool.h>
+#include "limits.h"
 
 // Runtime value types
 typedef enum {
@@ -12,19 +13,16 @@ typedef enum {
 // Runtime value structure
 typedef struct {
     ValueType type;
-    double number;    // For VAL_NUMBER
-    char string[256]; // For VAL_STRING
+    double number;               // For VAL_NUMBER
+    char string[MAX_STRING_LEN]; // For VAL_STRING
 } Value;
 
 // Variable type
 typedef struct {
-    char name[64];
+    char name[MAX_IDENT_LEN];
     Value value;
     bool used; // Whether the variable has been used
 } Variable;
-
-// Maximum number of variables
-#define MAX_VARIABLES 1024
 
 // Runtime state (things that change during execution)
 typedef struct {

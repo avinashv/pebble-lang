@@ -184,6 +184,18 @@ print greeting
 halt
 ```
 
+## Limits
+
+Pebble has the following built-in limits:
+
+| Limit | Value | Description |
+|-------|-------|-------------|
+| Identifier length | 63 characters | Maximum length for variable and label names |
+| String length | 255 characters | Maximum length for string literals and values |
+| Instructions | 1024 | Maximum number of instructions per program |
+| Variables | 1024 | Maximum number of variables at runtime |
+| Labels | 128 | Maximum number of labels per program |
+
 ## Project Structure
 
 ```

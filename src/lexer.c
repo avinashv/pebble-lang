@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "lexer.h"
+#include "limits.h"
 
 // Initialize the lexer with source code
 void lexer_init(LexerState *state, const char *src) {
@@ -122,7 +123,7 @@ Token next_token(LexerState *state) {
 
         // Add characters of the identifier to the token text
         int i = 0;
-        while (is_alpha_numeric(peek(state)) && i < 63) {
+        while (is_alpha_numeric(peek(state)) && i < MAX_IDENT_LEN - 1) {
             tok.text[i++] = advance(state);
         }
         tok.text[i] = '\0';
@@ -135,14 +136,14 @@ Token next_token(LexerState *state) {
 
         // Add characters of the number to the token text
         int i = 0;
-        while (is_digit(peek(state)) && i < 63) {
+        while (is_digit(peek(state)) && i < MAX_IDENT_LEN - 1) {
             tok.text[i++] = advance(state);
         }
 
         // Handle decimal point for floats
-        if (peek(state) == '.' && i < 63) {
+        if (peek(state) == '.' && i < MAX_IDENT_LEN - 1) {
             tok.text[i++] = advance(state);  // Consume the '.'
-            while (is_digit(peek(state)) && i < 63) {
+            while (is_digit(peek(state)) && i < MAX_IDENT_LEN - 1) {
                 tok.text[i++] = advance(state);
             }
         }
@@ -158,7 +159,7 @@ Token next_token(LexerState *state) {
 
         // Add characters of the string to the token text
         int i = 0;
-        while (peek(state) != '"' && peek(state) != '\n' && !at_end(state) && i < 63) {
+        while (peek(state) != '"' && peek(state) != '\n' && !at_end(state) && i < MAX_IDENT_LEN - 1) {
             tok.text[i++] = advance(state);
         }
         tok.text[i] = '\0';

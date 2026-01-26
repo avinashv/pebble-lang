@@ -4,16 +4,11 @@
 #include "opcode.h"
 #include "token.h"
 #include "lexer.h"
-
-// Maximum number of instructions
-#define MAX_INSTRUCTIONS 1024
-
-// Maximum number of labels
-#define MAX_LABELS 128
+#include "limits.h"
 
 // Label type (compile-time construct, resolved during parsing)
 typedef struct {
-    char name[64];
+    char name[MAX_IDENT_LEN];
     int address; // Index in the instruction array
 } Label;
 
