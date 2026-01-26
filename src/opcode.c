@@ -17,8 +17,11 @@ OpCodeInfo opcode_table[] = {
     { "jumpif", OP_JUMP_IF, 1 },
     { "jumpnot", OP_JUMP_NOT, 1 },
     { "eq", OP_EQ, 2 },
+    { "noteq", OP_NOTEQ, 2 },
     { "lt", OP_LT, 2 },
+    { "lteq", OP_LTEQ, 2 },
     { "gt", OP_GT, 2 },
+    { "gteq", OP_GTEQ, 2 },
     { "concat", OP_CONCAT, 3 },
     { NULL, 0, 0 } // End of table marker
 };

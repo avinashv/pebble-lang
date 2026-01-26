@@ -220,6 +220,14 @@ void run(RuntimeState *runtime, ParserState *parser) {
                 pc++;
                 break;
             }
+
+            case OP_NOTEQ: {
+                Value a = resolve(runtime, &inst->operands[0], inst->line, inst->col);
+                Value b = resolve(runtime, &inst->operands[1], inst->line, inst->col);
+                runtime->comparison_result = (a.integer != b.integer);
+                pc++;
+                break;
+            }
             
             case OP_LT: {
                 Value a = resolve(runtime, &inst->operands[0], inst->line, inst->col);
@@ -228,11 +236,27 @@ void run(RuntimeState *runtime, ParserState *parser) {
                 pc++;
                 break;
             }
+
+            case OP_LTEQ: {
+                Value a = resolve(runtime, &inst->operands[0], inst->line, inst->col);
+                Value b = resolve(runtime, &inst->operands[1], inst->line, inst->col);
+                runtime->comparison_result = (a.integer <= b.integer);
+                pc++;
+                break;
+            }
             
             case OP_GT: {
                 Value a = resolve(runtime, &inst->operands[0], inst->line, inst->col);
                 Value b = resolve(runtime, &inst->operands[1], inst->line, inst->col);
                 runtime->comparison_result = (a.integer > b.integer);
+                pc++;
+                break;
+            }
+
+            case OP_GTEQ: {
+                Value a = resolve(runtime, &inst->operands[0], inst->line, inst->col);
+                Value b = resolve(runtime, &inst->operands[1], inst->line, inst->col);
+                runtime->comparison_result = (a.integer >= b.integer);
                 pc++;
                 break;
             }

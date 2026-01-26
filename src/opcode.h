@@ -20,8 +20,11 @@ typedef enum {
     OP_JUMP_NOT, // Jump if not <label>
     
     OP_EQ,       // Equal <var> <var>
+    OP_NOTEQ,    // Not equal <var> <var>
     OP_LT,       // Less than <var> <var>
+    OP_LTEQ,     // Less than or equal to <var> <var>
     OP_GT,       // Greater than <var> <var>
+    OP_GTEQ,     // Greater than or equal to <var> <var>
 
     OP_CONCAT,   // Concat <var> <var> <dest>
 } OpCode;
