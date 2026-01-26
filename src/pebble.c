@@ -1,82 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-
+#include "pebble.h"
 #include "utils.h"
-#include "lexer.h"
-#include "parser.h"
-#include "opcode.h"
+#include "interpreter.h"
 
-// Runtime value types
-typedef enum {
-    VAL_INT,
-    VAL_STRING,
-} ValueType;
-
-// Runtime value structure
-typedef struct {
-    ValueType type;
-    long integer;     // For VAL_INT
-    char string[256]; // For VAL_STRING
-} Value;
-
-// Variable type
-typedef struct {
-    char name[64];
-    Value value;
-    int used; // Whether the variable has been used
-} Variable;
-
-// Variables storage
-#define MAX_VARIABLES 1024
-Variable variables[MAX_VARIABLES];
-int variable_count = 0; // The number of variables in the program
-
-// Find a variable by name
-Variable *find_variable(const char *name) {
-    // Go through all variables
-    for (int i = 0; i < variable_count; i++) {
-        // If the variable is used and the name matches, return the variable
-        if (variables[i].used && strcmp(variables[i].name, name) == 0) {
-            return &variables[i];
-        }
-    }
-
-    // If no variable is found, return NULL
-    return NULL;
-}
-
-// Set a variable value
-void set_variable(const char *name, Value value) {
-    Variable *var = find_variable(name);
-    if (var != NULL) {
-        var->value = value;
-        return;
-    }
-
-    // If no variable is found, create a new one
-    if (variable_count >= MAX_VARIABLES) {
-        printf("Error: maximum number of variables reached\n");
-        exit(1);
-    }
-
-    // Create a new variable
-    Variable *new_var = &variables[variable_count++];
-    strcpy(new_var->name, name);
-    new_var->value = value;
-    new_var->used = 1;
-}
-
-// Get a variable value
-Value get_variable(const char *name) {
-    Variable *var = find_variable(name);
-
-    if (var == NULL) {
-        printf("Error at line %d, col %d: undefined variable '%s'\n", line, col, name);
-        exit(1);
-    }
-
-    return var->value;
+// Initialize all interpreter state
+void pebble_init(PebbleState *state) {
+    parser_init(&state->parser);
+    runtime_init(&state->runtime);
+    // Note: lexer_init is called separately with the source code
 }
 
 int main(int argc, char **argv) {
@@ -87,44 +19,22 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    // Read the file into memory
+    // Initialize interpreter state
+    PebbleState state;
+    pebble_init(&state);
+
+    // Read the file and initialize lexer
     char *source = read_file(argv[1]);
-    lexer_init(source);
-    parse();
+    lexer_init(&state.lexer, source);
 
-    // Print all parsed instructions
-    printf("Parsed %d instructions:\n\n", instruction_count);
+    // Parse the program
+    parse(&state.parser, &state.lexer);
 
-    // Go through all instructions
-    for (int i = 0; i < instruction_count; i++) {
-        // Get the instruction
-        Instruction *instr = &instructions[i];
-
-        printf("%3d: %s", i, opcode_name(instr->opcode));
-
-        // Go through all operands
-        for (int j = 0; j < instr->operand_count; j++) {
-            Operand *op = &instr->operands[j];
-
-            // Print the operand
-            switch (op->type) {
-                case OPER_IDENT:
-                    printf(" %s", op->name);
-                    break;
-                case OPER_INT:
-                    printf(" %ld", op->value);
-                    break;
-                case OPER_STRING:
-                    printf(" \"%s\"", op->string);
-                    break;
-            }
-        }
-
-        // Print a newline to close the line
-        printf("\n");
-    }
-
+    // Clear the memory of the source code
     free(source);
+    
+    // Run the program
+    run(&state.runtime, &state.parser);
 
     return 0;
 }

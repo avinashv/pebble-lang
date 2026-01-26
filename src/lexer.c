@@ -2,39 +2,33 @@
 #include <stdlib.h>
 #include "lexer.h"
 
-// Lexer state
-static const char *source; // The entire source code
-static int pos;            // Current position (byte offset)
-static int line;           // Current line number
-static int col;            // Current column number
-
 // Initialize the lexer with source code
-void lexer_init(const char *src) {
-    source = src;
-    pos = 0;
-    line = 1;
-    col = 1;
+void lexer_init(LexerState *state, const char *src) {
+    state->source = src;
+    state->pos = 0;
+    state->line = 1;
+    state->col = 1;
 }
 
 // Look at the current character without consuming it
-static char peek(void) {
-    return source[pos];
+static char peek(LexerState *state) {
+    return state->source[state->pos];
 }
 
 // Consume the current character and advance
-static char advance(void) {
+static char advance(LexerState *state) {
     // Get the current character
-    char ch = source[pos];
+    char ch = state->source[state->pos];
 
     // Advance the position
-    pos++;
+    state->pos++;
     
     // Update the line and column numbers
     if (ch == '\n') {
-        line++;
-        col = 1;
+        state->line++;
+        state->col = 1;
     } else {
-        col++;
+        state->col++;
     }
 
     // Return the character
@@ -42,8 +36,8 @@ static char advance(void) {
 }
 
 // Are we at the end of the source?
-static int at_end(void) {
-    return source[pos] == '\0';
+static int at_end(LexerState *state) {
+    return state->source[state->pos] == '\0';
 }
 
 // Is this character a letter or underscore?
@@ -72,43 +66,43 @@ static int is_newline(char ch) {
 }
 
 // Skip whitespace
-static void skip_whitespace(void) {
-    while (is_whitespace(peek())) {
-        advance();
+static void skip_whitespace(LexerState *state) {
+    while (is_whitespace(peek(state))) {
+        advance(state);
     }
 }
 
 // Skip comments (from "#" to end of line)
-static void skip_comment(void) {
-    while (!at_end() && peek() != '\n') {
-        advance();
+static void skip_comment(LexerState *state) {
+    while (!at_end(state) && peek(state) != '\n') {
+        advance(state);
     }
 }
 
 // Get the next token
-Token next_token(void) {
+Token next_token(LexerState *state) {
     Token tok;
     tok.text[0] = '\0'; // Initialize the text to an empty string
 
-    skip_whitespace();
+    skip_whitespace(state);
 
     // Set the line and column numbers
-    tok.line = line;
-    tok.col = col;
+    tok.line = state->line;
+    tok.col = state->col;
 
     // Handle end of file
-    if (at_end()) {
+    if (at_end(state)) {
         tok.type = TOK_EOF;
         return tok;
     }
 
-    char ch = peek();
+    char ch = peek(state);
 
     // Handle comments
     if (ch == '#') {
-        skip_comment();
+        skip_comment(state);
         // Return the next token recursively
-        return next_token();
+        return next_token(state);
     }
 
     // Handle newlines
@@ -118,7 +112,7 @@ Token next_token(void) {
         tok.text[0] = '\n';
         tok.text[1] = '\0';
         
-        advance();
+        advance(state);
         return tok;
     }
 
@@ -128,8 +122,8 @@ Token next_token(void) {
 
         // Add characters of the identifier to the token text
         int i = 0;
-        while (is_alpha_numeric(peek()) && i < 63) {
-            tok.text[i++] = advance();
+        while (is_alpha_numeric(peek(state)) && i < 63) {
+            tok.text[i++] = advance(state);
         }
         tok.text[i] = '\0';
         return tok;
@@ -141,8 +135,8 @@ Token next_token(void) {
 
         // Add characters of the number to the token text
         int i = 0;
-        while (is_digit(peek()) && i < 63) {
-            tok.text[i++] = advance();
+        while (is_digit(peek(state)) && i < 63) {
+            tok.text[i++] = advance(state);
         }
         tok.text[i] = '\0';
         return tok;
@@ -151,17 +145,17 @@ Token next_token(void) {
     // Handle strings
     if (ch == '"') {
         tok.type = TOK_STRING;
-        advance();  // Skip opening quote
+        advance(state);  // Skip opening quote
 
         // Add characters of the string to the token text
         int i = 0;
-        while (peek() != '"' && peek() != '\n' && !at_end() && i < 63) {
-            tok.text[i++] = advance();
+        while (peek(state) != '"' && peek(state) != '\n' && !at_end(state) && i < 63) {
+            tok.text[i++] = advance(state);
         }
         tok.text[i] = '\0';
 
-        if (peek() == '"') {
-            advance();  // Skip closing quote
+        if (peek(state) == '"') {
+            advance(state);  // Skip closing quote
         } else {
             printf("Error at line %d, col %d: unterminated string\n",
                    tok.line, tok.col);
@@ -171,6 +165,6 @@ Token next_token(void) {
     }
 
     // Handle unknown character
-    printf("Error at line %d, col %d: unexpected '%c'\n", line, col, ch);
+    printf("Error at line %d, col %d: unexpected '%c'\n", state->line, state->col, ch);
     exit(1);  // Exit the program with an error
 }

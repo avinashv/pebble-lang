@@ -2,111 +2,119 @@
 #include <stdlib.h>
 #include <string.h>
 #include "parser.h"
-#include "lexer.h"
-#include "token.h"
 
-// Parser state
-static Token current_token;                    // The current token being processed
-Instruction instructions[MAX_INSTRUCTIONS];    // The parsed instructions
-int instruction_count = 0;                     // The number of instructions in the program
+// Initialize parser state
+void parser_init(ParserState *state) {
+    state->instruction_count = 0;
+}
 
 // Move to the next token
-static void parser_advance(void) {
-    current_token = next_token();
+static void parser_advance(ParserState *parser, LexerState *lexer) {
+    parser->current_token = next_token(lexer);
 }
 
 // Parse one operand
-static Operand parse_operand(void) {
+static Operand parse_operand(ParserState *parser, LexerState *lexer) {
     Operand op;
 
     // Parse the operand based on the token type
-    switch (current_token.type) {
+    switch (parser->current_token.type) {
         case TOK_WORD:
             op.type = OPER_IDENT;
-            strcpy(op.name, current_token.text);
+            strcpy(op.name, parser->current_token.text);
             break;
         case TOK_NUMBER:
             op.type = OPER_INT;
-            op.value = atol(current_token.text); // Convert string to long integer
+            op.value = atol(parser->current_token.text); // Convert string to long integer
             break;
         case TOK_STRING:
             op.type = OPER_STRING;
-            strcpy(op.string, current_token.text);
+            strcpy(op.string, parser->current_token.text);
             break;
         default:
-            printf("Error at line %d, col %d: expected operand, got %s\n", current_token.line, current_token.col, token_type_name(current_token.type));
+            printf("Error at line %d, col %d: expected operand, got %s\n", 
+                   parser->current_token.line, parser->current_token.col, 
+                   token_type_name(parser->current_token.type));
             exit(1);
     }
 
     // Advance to the next token
-    parser_advance();
+    parser_advance(parser, lexer);
 
     // Return the operand
     return op;
 }
 
 // Parse one instruction
-static void parse_instruction(void) {
+static void parse_instruction(ParserState *parser, LexerState *lexer) {
     // First token should be the instruction name
-    if (current_token.type != TOK_WORD) {
-        printf("Error at line %d, col %d: expected instruction, got %s\n", current_token.line, current_token.col, token_type_name(current_token.type));
+    if (parser->current_token.type != TOK_WORD) {
+        printf("Error at line %d, col %d: expected instruction, got %s\n", 
+               parser->current_token.line, parser->current_token.col, 
+               token_type_name(parser->current_token.type));
         exit(1);
     }
 
     // Look up the opcode
-    OpCodeInfo *opcode_info = find_opcode(current_token.text);
+    OpCodeInfo *opcode_info = find_opcode(parser->current_token.text);
     if (!opcode_info) {
-        printf("Error at line %d, col %d: unknown instruction '%s'\n", current_token.line, current_token.col, current_token.text);
+        printf("Error at line %d, col %d: unknown instruction '%s'\n", 
+               parser->current_token.line, parser->current_token.col, 
+               parser->current_token.text);
         exit(1);
     }
 
     // Create the instruction
     Instruction instr;
     instr.opcode = opcode_info->opcode;
-    instr.line = current_token.line;
-    instr.col = current_token.col;
+    instr.line = parser->current_token.line;
+    instr.col = parser->current_token.col;
     instr.operand_count = opcode_info->operand_count;
 
-    parser_advance();
+    parser_advance(parser, lexer);
 
     // Parse the operands
     for (int i = 0; i < opcode_info->operand_count; i++) {
-        if (current_token.type == TOK_NEWLINE || current_token.type == TOK_EOF) {
-            printf("Error at line %d, col %d: expected operand, got %s\n", current_token.line, current_token.col, token_type_name(current_token.type));
+        if (parser->current_token.type == TOK_NEWLINE || parser->current_token.type == TOK_EOF) {
+            printf("Error at line %d, col %d: expected operand, got %s\n", 
+                   parser->current_token.line, parser->current_token.col, 
+                   token_type_name(parser->current_token.type));
             exit(1);
         }
 
         // Parse the operand and append it to the instruction
-        instr.operands[i] = parse_operand();
+        instr.operands[i] = parse_operand(parser, lexer);
     }
     
     // Should have reached EOL/EOF now
-    if (current_token.type != TOK_NEWLINE && current_token.type != TOK_EOF) {
-        printf("Error at line %d, col %d: unexpected token, got %s\n", current_token.line, current_token.col, token_type_name(current_token.type));
+    if (parser->current_token.type != TOK_NEWLINE && parser->current_token.type != TOK_EOF) {
+        printf("Error at line %d, col %d: unexpected token, got %s\n", 
+               parser->current_token.line, parser->current_token.col, 
+               token_type_name(parser->current_token.type));
     }
 
     // Skip newline if present
-    if (current_token.type == TOK_NEWLINE) {
-        parser_advance();
+    if (parser->current_token.type == TOK_NEWLINE) {
+        parser_advance(parser, lexer);
     }
 
     // Add the instruction to the program
-    instructions[instruction_count++] = instr;
+    parser->instructions[parser->instruction_count++] = instr;
 }
 
 // Parse the entire program
-void parse(void) {
+void parse(ParserState *parser, LexerState *lexer) {
     // Get the first token
-    parser_advance();
+    parser_advance(parser, lexer);
 
-    while (current_token.type != TOK_EOF) {
+    while (parser->current_token.type != TOK_EOF) {
         // Skip blank lines
-        while (current_token.type == TOK_NEWLINE) {
-            parser_advance();
+        while (parser->current_token.type == TOK_NEWLINE) {
+            parser_advance(parser, lexer);
             continue;
         }
 
         // Parse an instruction
-        parse_instruction();
+        parse_instruction(parser, lexer);
     }
 }
