@@ -1,6 +1,8 @@
 #ifndef PEBBLE_RUNTIME_H
 #define PEBBLE_RUNTIME_H
 
+#include <stdbool.h>
+
 // Runtime value types
 typedef enum {
     VAL_INT,
@@ -18,7 +20,7 @@ typedef struct {
 typedef struct {
     char name[64];
     Value value;
-    int used; // Whether the variable has been used
+    bool used; // Whether the variable has been used
 } Variable;
 
 // Maximum number of variables
@@ -29,7 +31,7 @@ typedef struct {
     Variable variables[MAX_VARIABLES];
     int variable_count;
 
-    int comparison_result; // Result of the last comparison operation
+    bool comparison_result; // Result of the last comparison operation
 } RuntimeState;
 
 // Initialize runtime state

@@ -61,6 +61,33 @@ void run(RuntimeState *runtime, ParserState *parser) {
                 pc++;
                 break;
             }
+
+            case OP_READ: {
+                char input_buffer[256];
+
+                printf("%s", inst->operands[0].string);
+                fgets(input_buffer, sizeof(input_buffer), stdin);
+                
+                input_buffer[strcspn(input_buffer, "\n")] = 0; // Remove newline
+
+                // Try to parse as integer using strtol
+                char *endptr;
+                long int_val = strtol(input_buffer, &endptr, 10);
+
+                Value result;
+                if (*endptr == '\0' && input_buffer[0] != '\0') {
+                    // Entire string was a valid integer
+                    result.type = VAL_INT;
+                    result.integer = int_val;
+                } else {
+                    result.type = VAL_STRING;
+                    strcpy(result.string, input_buffer);
+                }
+
+                set_variable(runtime, inst->operands[1].name, result);
+                pc++;
+                break;
+            }
             
             case OP_ADD: {
                 Value a = resolve(runtime, &inst->operands[0], inst->line, inst->col);
@@ -209,7 +236,26 @@ void run(RuntimeState *runtime, ParserState *parser) {
                 pc++;
                 break;
             }
-            
+
+            case OP_CONCAT: {
+                Value a = resolve(runtime, &inst->operands[0], inst->line, inst->col);
+                Value b = resolve(runtime, &inst->operands[1], inst->line, inst->col);
+                const char *dest = inst->operands[2].name;
+                
+                if (a.type != VAL_STRING || b.type != VAL_STRING) {
+                    printf("Error at line %d: concat requires strings\n", inst->line);
+                    exit(1);
+                }
+
+                Value result;
+                result.type = VAL_STRING;
+                strcpy(result.string, a.string);
+                strcat(result.string, b.string);
+                set_variable(runtime, dest, result);
+                pc++;
+                break;
+            }
+
             default:
                 pc++;
                 break;

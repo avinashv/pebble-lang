@@ -6,7 +6,7 @@
 // Initialize runtime state
 void runtime_init(RuntimeState *state) {
     state->variable_count = 0;
-    state->comparison_result = 0;
+    state->comparison_result = false;
 }
 
 // Find a variable by name
@@ -41,7 +41,7 @@ void set_variable(RuntimeState *state, const char *name, Value value) {
     Variable *new_var = &state->variables[state->variable_count++];
     strcpy(new_var->name, name);
     new_var->value = value;
-    new_var->used = 1;
+    new_var->used = true;
 }
 
 // Get a variable value

@@ -6,6 +6,7 @@
 OpCodeInfo opcode_table[] = {
     { "set", OP_SET, 2 },
     { "print", OP_PRINT, 1 },
+    { "read", OP_READ, 2 },
     { "add", OP_ADD, 3 },
     { "sub", OP_SUB, 3 },
     { "mul", OP_MUL, 3 },
@@ -18,6 +19,7 @@ OpCodeInfo opcode_table[] = {
     { "eq", OP_EQ, 2 },
     { "lt", OP_LT, 2 },
     { "gt", OP_GT, 2 },
+    { "concat", OP_CONCAT, 3 },
     { NULL, 0, 0 } // End of table marker
 };
 

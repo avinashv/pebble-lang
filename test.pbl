@@ -6,4 +6,10 @@ mul x y result
 print result
 div y x result
 print result
+
+read "Who are you? " name
+concat "Hello, " name name
+concat name "!" name
+print name
+
 halt
