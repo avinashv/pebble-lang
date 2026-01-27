@@ -8,6 +8,11 @@ void runtime_init(RuntimeState *state) {
     state->variable_count = 0;
     state->comparison_result = false;
     state->call_stack_top = 0;
+    
+    // Initialize array pool
+    for (int i = 0; i < MAX_ARRAYS; i++) {
+        state->arrays[i].used = false;
+    }
 }
 
 // Find a variable by name
@@ -55,4 +60,54 @@ Value get_variable(RuntimeState *state, const char *name, int line, int col) {
     }
 
     return var->value;
+}
+
+// Allocate a new array with given capacity
+int alloc_array(RuntimeState *state, int capacity, int line) {
+    // Check capacity is valid
+    if (capacity <= 0 || capacity > MAX_ARRAY_LEN) {
+        printf("Error at line %d: array capacity must be between 1 and %d\n", line, MAX_ARRAY_LEN);
+        exit(1);
+    }
+
+    // Find a free slot in the array pool
+    for (int i = 0; i < MAX_ARRAYS; i++) {
+        if (!state->arrays[i].used) {
+            state->arrays[i].used = true;
+            state->arrays[i].capacity = capacity;
+            state->arrays[i].length = capacity;
+            
+            // Initialize all elements to 0
+            for (int j = 0; j < capacity; j++) {
+                state->arrays[i].elements[j] = 0;
+            }
+            
+            return i;
+        }
+    }
+
+    printf("Error at line %d: maximum number of arrays reached\n", line);
+    exit(1);
+}
+
+// Deep copy an array
+int copy_array(RuntimeState *state, int src_index, int line) {
+    Array *src = &state->arrays[src_index];
+    
+    // Allocate new array with same capacity
+    int dest_index = alloc_array(state, src->capacity, line);
+    Array *dest = &state->arrays[dest_index];
+    
+    // Copy length and elements
+    dest->length = src->length;
+    for (int i = 0; i < src->length; i++) {
+        dest->elements[i] = src->elements[i];
+    }
+    
+    return dest_index;
+}
+
+// Get array pointer
+Array *get_array(RuntimeState *state, int index) {
+    return &state->arrays[index];
 }

@@ -26,4 +26,10 @@
 // Maximum call stack depth (for nested subroutine calls)
 #define MAX_CALL_DEPTH 128
 
+// Maximum number of arrays at runtime
+#define MAX_ARRAYS 64
+
+// Maximum number of elements per array
+#define MAX_ARRAY_LEN 128
+
 #endif // PEBBLE_LIMITS_H

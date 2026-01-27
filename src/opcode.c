@@ -27,6 +27,12 @@ OpCodeInfo opcode_table[] = {
     { "gt", OP_GT, 2 },
     { "gteq", OP_GTEQ, 2 },
     { "concat", OP_CONCAT, 3 },
+    { "len", OP_LEN, 2 },
+    { "array", OP_ARRAY, 2 },
+    { "seta", OP_SETA, 3 },
+    { "geta", OP_GETA, 3 },
+    { "push", OP_PUSH, 2 },
+    { "pop", OP_POP, 2 },
     { NULL, 0, 0 } // End of table marker
 };
 

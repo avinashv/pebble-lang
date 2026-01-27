@@ -66,7 +66,7 @@ Value resolve(RuntimeState *runtime, Operand *op, int line, int col) {
 }
 
 // Print a value.
-void print_value(Value *v) {
+void print_value(Value *v, RuntimeState *runtime) {
     if (v->type == VAL_NUMBER) {
         // Check if it's a whole number
         if (v->number == (long)v->number) {
@@ -74,8 +74,22 @@ void print_value(Value *v) {
         } else {
             printf("%g\n", v->number);
         }
-    } else {
+    } else if (v->type == VAL_STRING) {
+        // Print string as is
         printf("%s\n", v->string);
+    } else if (v->type == VAL_ARRAY) {
+        // Print array as [elem1, elem2, ...]
+        Array *arr = get_array(runtime, v->array_index);
+        printf("[");
+        for (int i = 0; i < arr->length; i++) {
+            if (i > 0) printf(", ");
+            if (arr->elements[i] == (long)arr->elements[i]) {
+                printf("%ld", (long)arr->elements[i]);
+            } else {
+                printf("%g", arr->elements[i]);
+            }
+        }
+        printf("]\n");
     }
 }
 
@@ -157,8 +171,14 @@ void run(RuntimeState *runtime, ParserState *parser) {
             }
 
             case OP_COPY: {
-                // Get the value of the first operand and set the second operand to the value
+                // Get the value of the first operand
                 Value val = get_variable(runtime, inst->operands[0].name, inst->line, inst->col);
+                
+                // Deep copy arrays
+                if (val.type == VAL_ARRAY) {
+                    val.array_index = copy_array(runtime, val.array_index, inst->line);
+                }
+                
                 set_variable(runtime, inst->operands[1].name, val);
                 break;
             }
@@ -166,7 +186,7 @@ void run(RuntimeState *runtime, ParserState *parser) {
             case OP_PRINT: {
                 // Resolve the operand to a value and print it
                 Value val = resolve(runtime, &inst->operands[0], inst->line, inst->col);
-                print_value(&val);
+                print_value(&val, runtime);
                 break;
             }
 
@@ -274,6 +294,160 @@ void run(RuntimeState *runtime, ParserState *parser) {
                 // Pop return address and jump back
                 pc = runtime->call_stack[--runtime->call_stack_top];
                 continue;
+            }
+
+            // Array and length operations
+            case OP_LEN: {
+                // Get length of string or array
+                Value val = resolve(runtime, &inst->operands[0], inst->line, inst->col);
+                
+                Value result;
+                result.type = VAL_NUMBER;
+                
+                if (val.type == VAL_STRING) {
+                    result.number = strlen(val.string);
+                } else if (val.type == VAL_ARRAY) {
+                    Array *arr = get_array(runtime, val.array_index);
+                    result.number = arr->length;
+                } else {
+                    printf("Error at line %d: len requires a string or array\n", inst->line);
+                    exit(1);
+                }
+                
+                set_variable(runtime, inst->operands[1].name, result);
+                break;
+            }
+
+            case OP_ARRAY: {
+                // Create a new array: array <name> <size>
+                Value size_val = resolve(runtime, &inst->operands[1], inst->line, inst->col);
+                
+                if (size_val.type != VAL_NUMBER) {
+                    printf("Error at line %d: array size must be a number\n", inst->line);
+                    exit(1);
+                }
+                
+                int capacity = (int)size_val.number;
+                int arr_index = alloc_array(runtime, capacity, inst->line);
+                
+                Value arr_val;
+                arr_val.type = VAL_ARRAY;
+                arr_val.array_index = arr_index;
+                
+                set_variable(runtime, inst->operands[0].name, arr_val);
+                break;
+            }
+
+            case OP_SETA: {
+                // Set array element: seta <arr> <idx> <val>
+                Value arr_val = resolve(runtime, &inst->operands[0], inst->line, inst->col);
+                Value idx_val = resolve(runtime, &inst->operands[1], inst->line, inst->col);
+                Value val = resolve(runtime, &inst->operands[2], inst->line, inst->col);
+                
+                if (arr_val.type != VAL_ARRAY) {
+                    printf("Error at line %d: seta requires an array\n", inst->line);
+                    exit(1);
+                }
+                if (idx_val.type != VAL_NUMBER) {
+                    printf("Error at line %d: array index must be a number\n", inst->line);
+                    exit(1);
+                }
+                if (val.type != VAL_NUMBER) {
+                    printf("Error at line %d: array elements must be numbers\n", inst->line);
+                    exit(1);
+                }
+                
+                Array *arr = get_array(runtime, arr_val.array_index);
+                int idx = (int)idx_val.number;
+                
+                if (idx < 0 || idx >= arr->length) {
+                    printf("Error at line %d: array index %d out of bounds (length %d)\n", 
+                           inst->line, idx, arr->length);
+                    exit(1);
+                }
+                
+                arr->elements[idx] = val.number;
+                break;
+            }
+
+            case OP_GETA: {
+                // Get array element: geta <arr> <idx> <dest>
+                Value arr_val = resolve(runtime, &inst->operands[0], inst->line, inst->col);
+                Value idx_val = resolve(runtime, &inst->operands[1], inst->line, inst->col);
+                
+                if (arr_val.type != VAL_ARRAY) {
+                    printf("Error at line %d: geta requires an array\n", inst->line);
+                    exit(1);
+                }
+                if (idx_val.type != VAL_NUMBER) {
+                    printf("Error at line %d: array index must be a number\n", inst->line);
+                    exit(1);
+                }
+                
+                Array *arr = get_array(runtime, arr_val.array_index);
+                int idx = (int)idx_val.number;
+                
+                if (idx < 0 || idx >= arr->length) {
+                    printf("Error at line %d: array index %d out of bounds (length %d)\n", 
+                           inst->line, idx, arr->length);
+                    exit(1);
+                }
+                
+                Value result;
+                result.type = VAL_NUMBER;
+                result.number = arr->elements[idx];
+                
+                set_variable(runtime, inst->operands[2].name, result);
+                break;
+            }
+
+            case OP_PUSH: {
+                // Push element to array: push <arr> <val>
+                Value arr_val = resolve(runtime, &inst->operands[0], inst->line, inst->col);
+                Value val = resolve(runtime, &inst->operands[1], inst->line, inst->col);
+                
+                if (arr_val.type != VAL_ARRAY) {
+                    printf("Error at line %d: push requires an array\n", inst->line);
+                    exit(1);
+                }
+                if (val.type != VAL_NUMBER) {
+                    printf("Error at line %d: array elements must be numbers\n", inst->line);
+                    exit(1);
+                }
+                
+                Array *arr = get_array(runtime, arr_val.array_index);
+                
+                if (arr->length >= arr->capacity) {
+                    printf("Error at line %d: array capacity exceeded\n", inst->line);
+                    exit(1);
+                }
+                
+                arr->elements[arr->length++] = val.number;
+                break;
+            }
+
+            case OP_POP: {
+                // Pop element from array: pop <arr> <dest>
+                Value arr_val = resolve(runtime, &inst->operands[0], inst->line, inst->col);
+                
+                if (arr_val.type != VAL_ARRAY) {
+                    printf("Error at line %d: pop requires an array\n", inst->line);
+                    exit(1);
+                }
+                
+                Array *arr = get_array(runtime, arr_val.array_index);
+                
+                if (arr->length <= 0) {
+                    printf("Error at line %d: cannot pop from empty array\n", inst->line);
+                    exit(1);
+                }
+                
+                Value result;
+                result.type = VAL_NUMBER;
+                result.number = arr->elements[--arr->length];
+                
+                set_variable(runtime, inst->operands[1].name, result);
+                break;
             }
 
             default:

@@ -1,0 +1,112 @@
+# Comprehensive array and len test
+
+# Basic array creation and access
+print "Basic array"
+array nums 3
+seta nums 0 10
+seta nums 1 20
+seta nums 2 30
+print nums
+
+# Get array element
+print "Get element"
+geta nums 1 val
+print val
+
+# Len on array
+print "Array length"
+len nums size
+print size
+
+# Len on string
+print "String length"
+set greeting "Hello, World!"
+len greeting str_len
+print str_len
+
+# Push and pop (using pop to shrink, then push to grow)
+print "Push and pop"
+array stack 5
+print stack
+
+# Pop all elements to make room for push
+pop stack x
+pop stack x
+pop stack x
+pop stack x
+pop stack x
+len stack stack_len
+print stack_len
+
+# Now push elements
+push stack 100
+push stack 200
+push stack 300
+print stack
+pop stack top
+print top
+print stack
+
+# Loop through array
+print "Loop through array"
+array data 5
+seta data 0 2
+seta data 1 4
+seta data 2 6
+seta data 3 8
+seta data 4 10
+
+set i 0
+set total 0
+len data n
+
+label loop
+    lt i n
+    jumpnot done
+    geta data i val
+    add total val total
+    add i 1 i
+    jump loop
+
+label done
+print total
+
+# Deep copy arrays
+print "Deep copy"
+array original 3
+seta original 0 1
+seta original 1 2
+seta original 2 3
+copy original clone
+seta clone 0 999
+print original
+print clone
+
+# Using arrays with subroutines
+print "Subroutine with array"
+array values 4
+seta values 0 5
+seta values 1 10
+seta values 2 15
+seta values 3 20
+call sum_array
+print result
+
+halt
+
+# Subroutine to sum the 'values' array into 'result'
+label sum_array
+    set result 0
+    set idx 0
+    len values count
+    
+    label sum_loop
+        lt idx count
+        jumpnot sum_done
+        geta values idx v
+        add result v result
+        add idx 1 idx
+        jump sum_loop
+    
+    label sum_done
+    ret

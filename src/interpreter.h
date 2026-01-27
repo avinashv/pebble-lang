@@ -9,7 +9,7 @@
 Value resolve(RuntimeState *runtime, Operand *op, int line, int col);
 
 // Print a value
-void print_value(Value *v);
+void print_value(Value *v, RuntimeState *runtime);
 
 // Execute the program
 void run(RuntimeState *runtime, ParserState *parser);

@@ -33,6 +33,13 @@ typedef enum {
     OP_GTEQ,     // Greater than or equal to <var> <var>
 
     OP_CONCAT,   // Concat <var> <var> <dest>
+    OP_LEN,      // Len <var> <dest>
+
+    OP_ARRAY,    // Array <name> <size>
+    OP_SETA,     // SetA <arr> <idx> <val>
+    OP_GETA,     // GetA <arr> <idx> <dest>
+    OP_PUSH,     // Push <arr> <val>
+    OP_POP,      // Pop <arr> <dest>
 } OpCode;
 
 // Operand types
