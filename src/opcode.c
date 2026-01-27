@@ -18,6 +18,8 @@ OpCodeInfo opcode_table[] = {
     { "jump", OP_JUMP, 1 },
     { "jumpif", OP_JUMP_IF, 1 },
     { "jumpnot", OP_JUMP_NOT, 1 },
+    { "call", OP_CALL, 1 },
+    { "ret", OP_RET, 0 },
     { "eq", OP_EQ, 2 },
     { "noteq", OP_NOTEQ, 2 },
     { "lt", OP_LT, 2 },

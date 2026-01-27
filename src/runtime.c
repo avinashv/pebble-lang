@@ -7,6 +7,7 @@
 void runtime_init(RuntimeState *state) {
     state->variable_count = 0;
     state->comparison_result = false;
+    state->call_stack_top = 0;
 }
 
 // Find a variable by name

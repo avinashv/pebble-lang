@@ -22,6 +22,8 @@ typedef enum {
     OP_JUMP,     // Jump <label>
     OP_JUMP_IF,  // Jump if <label>
     OP_JUMP_NOT, // Jump if not <label>
+    OP_CALL,     // Call <label>
+    OP_RET,      // Return from subroutine
     
     OP_EQ,       // Equal <var> <var>
     OP_NOTEQ,    // Not equal <var> <var>

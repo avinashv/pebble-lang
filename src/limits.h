@@ -23,4 +23,7 @@
 // Maximum number of variables at runtime
 #define MAX_VARIABLES 1024
 
+// Maximum call stack depth (for nested subroutine calls)
+#define MAX_CALL_DEPTH 128
+
 #endif // PEBBLE_LIMITS_H

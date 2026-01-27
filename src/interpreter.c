@@ -251,6 +251,31 @@ void run(RuntimeState *runtime, ParserState *parser) {
                 break;
             }
 
+            case OP_CALL: {
+                // Check for call stack overflow
+                if (runtime->call_stack_top >= MAX_CALL_DEPTH) {
+                    printf("Error at line %d: call stack overflow\n", inst->line);
+                    exit(1);
+                }
+
+                // Push return address and jump to subroutine
+                runtime->call_stack[runtime->call_stack_top++] = pc + 1;
+                pc = resolve_jump(parser, inst);
+                continue;
+            }
+
+            case OP_RET: {
+                // Check for call stack underflow
+                if (runtime->call_stack_top <= 0) {
+                    printf("Error at line %d: ret without matching call\n", inst->line);
+                    exit(1);
+                }
+
+                // Pop return address and jump back
+                pc = runtime->call_stack[--runtime->call_stack_top];
+                continue;
+            }
+
             default:
                 break;
         }

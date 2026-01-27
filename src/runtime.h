@@ -30,6 +30,9 @@ typedef struct {
     int variable_count;
 
     bool comparison_result; // Result of the last comparison operation
+
+    int call_stack[MAX_CALL_DEPTH]; // Stack of return addresses
+    int call_stack_top;             // Index of next free slot (0 = empty)
 } RuntimeState;
 
 // Initialize runtime state
