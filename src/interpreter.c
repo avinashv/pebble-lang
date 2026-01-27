@@ -5,6 +5,46 @@
 #include "interpreter.h"
 #include "limits.h"
 
+// Function pointer types for table-driven dispatch
+typedef double (*ArithmeticOp)(double, double);
+typedef int (*CompareOp)(double, double);
+
+// Arithmetic operation functions
+static double op_add(double a, double b) { return a + b; }
+static double op_sub(double a, double b) { return a - b; }
+static double op_mul(double a, double b) { return a * b; }
+static double op_div(double a, double b) { return a / b; }
+static double op_mod(double a, double b) { return fmod(a, b); }
+
+// Comparison operation functions
+static int cmp_eq(double a, double b)    { return a == b; }
+static int cmp_noteq(double a, double b) { return a != b; }
+static int cmp_lt(double a, double b)    { return a < b; }
+static int cmp_lteq(double a, double b)  { return a <= b; }
+static int cmp_gt(double a, double b)    { return a > b; }
+static int cmp_gteq(double a, double b)  { return a >= b; }
+
+// Lookup tables for arithmetic and comparison operations
+static const struct {
+    ArithmeticOp fn;
+    const char *name;
+} arith_ops[] = {
+    [OP_ADD] = { op_add, "add" },
+    [OP_SUB] = { op_sub, "sub" },
+    [OP_MUL] = { op_mul, "mul" },
+    [OP_DIV] = { op_div, "div" },
+    [OP_MOD] = { op_mod, "mod" },
+};
+
+static const CompareOp compare_ops[] = {
+    [OP_EQ]    = cmp_eq,
+    [OP_NOTEQ] = cmp_noteq,
+    [OP_LT]    = cmp_lt,
+    [OP_LTEQ]  = cmp_lteq,
+    [OP_GT]    = cmp_gt,
+    [OP_GTEQ]  = cmp_gteq,
+};
+
 // Convert an operand to a runtime value.
 Value resolve(RuntimeState *runtime, Operand *op, int line, int col) {
     Value v;
@@ -39,278 +79,183 @@ void print_value(Value *v) {
     }
 }
 
-// Execute the program.
+// Execute an arithmetic operation (add, sub, mul, div, mod).
+static void exec_arithmetic(RuntimeState *runtime, Instruction *inst, ArithmeticOp op, const char *op_name) {
+    // Resolve the first two operands to values
+    Value a = resolve(runtime, &inst->operands[0], inst->line, inst->col);
+    Value b = resolve(runtime, &inst->operands[1], inst->line, inst->col);
+    
+    // Check if the operands are numbers
+    if (a.type != VAL_NUMBER || b.type != VAL_NUMBER) {
+        printf("Error at line %d: %s requires numbers\n", inst->line, op_name);
+        exit(1);
+    }
+    
+    // Create a new result value and set the third operand to the result
+    Value result;
+    result.type = VAL_NUMBER;
+    result.number = op(a.number, b.number);
+    set_variable(runtime, inst->operands[2].name, result);
+}
+
+// Execute a comparison operation (eq, noteq, lt, lteq, gt, gteq).
+static void exec_compare(RuntimeState *runtime, Instruction *inst, CompareOp op) {
+    // Resolve the first two operands to values
+    Value a = resolve(runtime, &inst->operands[0], inst->line, inst->col);
+    Value b = resolve(runtime, &inst->operands[1], inst->line, inst->col);
+
+    // Execute the comparison operation and set the result to the runtime state
+    runtime->comparison_result = op(a.number, b.number);
+}
+
+// Resolve a jump target label to an instruction address.
+// Returns the address, or exits with an error if the label is not found.
+static int resolve_jump(ParserState *parser, Instruction *inst) {
+    const char *target = inst->operands[0].name;
+    int addr = find_label(parser, target);
+    if (addr < 0) {
+        printf("Error at line %d: undefined label '%s'\n", inst->line, target);
+        exit(1);
+    }
+    return addr;
+}
+
+// Main interpreter loop
 void run(RuntimeState *runtime, ParserState *parser) {
-    int pc = 0;  /* Program counter: which instruction to execute */
+    int pc = 0;  // Program counter
     
     while (pc < parser->instruction_count) {
         Instruction *inst = &parser->instructions[pc];
         
         switch (inst->opcode) {
             
+            // Arithmetic operations
+            case OP_ADD:
+            case OP_SUB:
+            case OP_MUL:
+            case OP_DIV:
+            case OP_MOD:
+                exec_arithmetic(runtime, inst, arith_ops[inst->opcode].fn, arith_ops[inst->opcode].name);
+                break;
+            
+            // Comparison operations
+            case OP_EQ:
+            case OP_NOTEQ:
+            case OP_LT:
+            case OP_LTEQ:
+            case OP_GT:
+            case OP_GTEQ:
+                exec_compare(runtime, inst, compare_ops[inst->opcode]);
+                break;
+            
+            // Variable and I/O operations
             case OP_SET: {
-                const char *name = inst->operands[0].name;
+                // Resolve the second operand to a value
                 Value val = resolve(runtime, &inst->operands[1], inst->line, inst->col);
-                set_variable(runtime, name, val);
-                pc++;
+                set_variable(runtime, inst->operands[0].name, val);
                 break;
             }
 
             case OP_COPY: {
-                const char *src = inst->operands[0].name;
-                const char *dest = inst->operands[1].name;
-                Value val = get_variable(runtime, src, inst->line, inst->col);
-                set_variable(runtime, dest, val);
-                pc++;
+                // Get the value of the first operand and set the second operand to the value
+                Value val = get_variable(runtime, inst->operands[0].name, inst->line, inst->col);
+                set_variable(runtime, inst->operands[1].name, val);
                 break;
             }
 
             case OP_PRINT: {
+                // Resolve the operand to a value and print it
                 Value val = resolve(runtime, &inst->operands[0], inst->line, inst->col);
                 print_value(&val);
-                pc++;
                 break;
             }
 
             case OP_READ: {
+                // Read user input into a buffer and convert it to a number or string
                 char input_buffer[MAX_STRING_LEN];
 
+                // Print the prompt
                 printf("%s", inst->operands[0].string);
-                fgets(input_buffer, sizeof(input_buffer), stdin);
-                
-                input_buffer[strcspn(input_buffer, "\n")] = 0; // Remove newline
 
-                // Try to parse as number using strtod
+                // Read user input into the buffer
+                fgets(input_buffer, sizeof(input_buffer), stdin);
+                input_buffer[strcspn(input_buffer, "\n")] = 0;
+
+                // Convert the input to a number or string
                 char *endptr;
                 double num_val = strtod(input_buffer, &endptr);
 
+                // Create a new result value and set it to the number or string
                 Value result;
+
+                // If the input is a number, set the result to the number
                 if (*endptr == '\0' && input_buffer[0] != '\0') {
-                    // Entire string was a valid number
                     result.type = VAL_NUMBER;
                     result.number = num_val;
                 } else {
+                    // If the input is a string, set the result to the string
                     result.type = VAL_STRING;
                     strcpy(result.string, input_buffer);
                 }
 
+                // Set the second operand to the result
                 set_variable(runtime, inst->operands[1].name, result);
-                pc++;
                 break;
             }
             
-            case OP_ADD: {
-                Value a = resolve(runtime, &inst->operands[0], inst->line, inst->col);
-                Value b = resolve(runtime, &inst->operands[1], inst->line, inst->col);
-                const char *dest = inst->operands[2].name;
-                
-                if (a.type != VAL_NUMBER || b.type != VAL_NUMBER) {
-                    printf("Error at line %d: add requires numbers\n", inst->line);
-                    exit(1);
-                }
-                
-                Value result;
-                result.type = VAL_NUMBER;
-                result.number = a.number + b.number;
-                set_variable(runtime, dest, result);
-                pc++;
-                break;
-            }
-            
-            case OP_SUB: {
-                Value a = resolve(runtime, &inst->operands[0], inst->line, inst->col);
-                Value b = resolve(runtime, &inst->operands[1], inst->line, inst->col);
-                const char *dest = inst->operands[2].name;
-                
-                if (a.type != VAL_NUMBER || b.type != VAL_NUMBER) {
-                    printf("Error at line %d: sub requires numbers\n", inst->line);
-                    exit(1);
-                }
-                
-                Value result;
-                result.type = VAL_NUMBER;
-                result.number = a.number - b.number;
-                set_variable(runtime, dest, result);
-                pc++;
-                break;
-            }
-
-            case OP_MUL: {
-                Value a = resolve(runtime, &inst->operands[0], inst->line, inst->col);
-                Value b = resolve(runtime, &inst->operands[1], inst->line, inst->col);
-                const char *dest = inst->operands[2].name;
-                
-                if (a.type != VAL_NUMBER || b.type != VAL_NUMBER) {
-                    printf("Error at line %d: mul requires numbers\n", inst->line);
-                    exit(1);
-                }
-                
-                Value result;
-                result.type = VAL_NUMBER;
-                result.number = a.number * b.number;
-                set_variable(runtime, dest, result);
-                pc++;
-                break;
-            }
-
-            case OP_DIV: {
-                Value a = resolve(runtime, &inst->operands[0], inst->line, inst->col);
-                Value b = resolve(runtime, &inst->operands[1], inst->line, inst->col);
-                const char *dest = inst->operands[2].name;
-                
-                if (a.type != VAL_NUMBER || b.type != VAL_NUMBER) {
-                    printf("Error at line %d: div requires numbers\n", inst->line);
-                    exit(1);
-                }
-                
-                Value result;
-                result.type = VAL_NUMBER;
-                result.number = a.number / b.number;
-                set_variable(runtime, dest, result);
-                pc++;
-                break;
-            }
-
-            case OP_MOD: {
-                Value a = resolve(runtime, &inst->operands[0], inst->line, inst->col);
-                Value b = resolve(runtime, &inst->operands[1], inst->line, inst->col);
-                const char *dest = inst->operands[2].name;
-                
-                if (a.type != VAL_NUMBER || b.type != VAL_NUMBER) {
-                    printf("Error at line %d: mod requires numbers\n", inst->line);
-                    exit(1);
-                }
-                
-                Value result;
-                result.type = VAL_NUMBER;
-                result.number = fmod(a.number, b.number);
-                set_variable(runtime, dest, result);
-                pc++;
-                break;
-            }
-            
-            case OP_HALT:
-                return;  // Stop execution
-            
-            case OP_LABEL:
-                // Labels don't do anything at runtime (and shouldn't appear here)
-                pc++;
-                break;
-            
-            case OP_JUMP: {
-                const char *target = inst->operands[0].name;
-                int addr = find_label(parser, target);
-                if (addr < 0) {
-                    printf("Error at line %d: undefined label '%s'\n",
-                           inst->line, target);
-                    exit(1);
-                }
-                pc = addr;
-                break;
-            }
-            
-            case OP_JUMP_IF: {
-                if (runtime->comparison_result) {
-                    const char *target = inst->operands[0].name;
-                    int addr = find_label(parser, target);
-                    if (addr < 0) {
-                        printf("Error at line %d: undefined label '%s'\n",
-                               inst->line, target);
-                        exit(1);
-                    }
-                    pc = addr;
-                } else {
-                    pc++;
-                }
-                break;
-            }
-            
-            case OP_JUMP_NOT: {
-                if (!runtime->comparison_result) {
-                    const char *target = inst->operands[0].name;
-                    int addr = find_label(parser, target);
-                    if (addr < 0) {
-                        printf("Error at line %d: undefined label '%s'\n",
-                               inst->line, target);
-                        exit(1);
-                    }
-                    pc = addr;
-                } else {
-                    pc++;
-                }
-                break;
-            }
-            
-            case OP_EQ: {
-                Value a = resolve(runtime, &inst->operands[0], inst->line, inst->col);
-                Value b = resolve(runtime, &inst->operands[1], inst->line, inst->col);
-                runtime->comparison_result = (a.number == b.number);
-                pc++;
-                break;
-            }
-
-            case OP_NOTEQ: {
-                Value a = resolve(runtime, &inst->operands[0], inst->line, inst->col);
-                Value b = resolve(runtime, &inst->operands[1], inst->line, inst->col);
-                runtime->comparison_result = (a.number != b.number);
-                pc++;
-                break;
-            }
-            
-            case OP_LT: {
-                Value a = resolve(runtime, &inst->operands[0], inst->line, inst->col);
-                Value b = resolve(runtime, &inst->operands[1], inst->line, inst->col);
-                runtime->comparison_result = (a.number < b.number);
-                pc++;
-                break;
-            }
-
-            case OP_LTEQ: {
-                Value a = resolve(runtime, &inst->operands[0], inst->line, inst->col);
-                Value b = resolve(runtime, &inst->operands[1], inst->line, inst->col);
-                runtime->comparison_result = (a.number <= b.number);
-                pc++;
-                break;
-            }
-            
-            case OP_GT: {
-                Value a = resolve(runtime, &inst->operands[0], inst->line, inst->col);
-                Value b = resolve(runtime, &inst->operands[1], inst->line, inst->col);
-                runtime->comparison_result = (a.number > b.number);
-                pc++;
-                break;
-            }
-
-            case OP_GTEQ: {
-                Value a = resolve(runtime, &inst->operands[0], inst->line, inst->col);
-                Value b = resolve(runtime, &inst->operands[1], inst->line, inst->col);
-                runtime->comparison_result = (a.number >= b.number);
-                pc++;
-                break;
-            }
-
+            // String operations
             case OP_CONCAT: {
+                // Resolve the first two operands to values
                 Value a = resolve(runtime, &inst->operands[0], inst->line, inst->col);
                 Value b = resolve(runtime, &inst->operands[1], inst->line, inst->col);
-                const char *dest = inst->operands[2].name;
                 
+                // Check if the operands are strings
                 if (a.type != VAL_STRING || b.type != VAL_STRING) {
                     printf("Error at line %d: concat requires strings\n", inst->line);
                     exit(1);
                 }
 
+                // Create a new result value and set it to the concatenated string
                 Value result;
                 result.type = VAL_STRING;
                 strcpy(result.string, a.string);
                 strcat(result.string, b.string);
-                set_variable(runtime, dest, result);
-                pc++;
+                set_variable(runtime, inst->operands[2].name, result);
+                break;
+            }
+            
+            // Control flow
+            case OP_HALT:
+                return;
+            
+            case OP_LABEL:
+                // Labels are no-ops at runtime
+                break;
+            
+            case OP_JUMP:
+                pc = resolve_jump(parser, inst);
+                continue;  // Skip the pc++ at the end
+            
+            case OP_JUMP_IF:
+            case OP_JUMP_NOT: {
+                // Determine whether the jump should happen based on the comparison result
+                int should_jump = (inst->opcode == OP_JUMP_IF) ? runtime->comparison_result : !runtime->comparison_result;
+
+                // If the jump should happen, resolve the jump target and skip the pc++ at the end
+                if (should_jump) {
+                    pc = resolve_jump(parser, inst);
+                    continue;  // Skip the pc++ at the end
+                }
+
+                // If the jump should not happen, break
                 break;
             }
 
             default:
-                pc++;
                 break;
         }
+        
+        // Increment the program counter
+        pc++;
     }
 }
