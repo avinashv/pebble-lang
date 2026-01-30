@@ -406,6 +406,8 @@ raylib-master
 *.swn
 /build/compile_commands.json
 
+.DS_Store
+
 # Project-specific
 pebble
 /pebble.dSYM
