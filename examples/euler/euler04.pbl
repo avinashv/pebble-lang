@@ -1,0 +1,74 @@
+# Project Euler Problem 4
+# Find the largest palindrome made from the product of two 3-digit numbers
+
+set largest 0
+array digits 6
+set a 999
+
+label loop_a
+    lt a 100
+    jumpif done
+
+    set b 999
+
+label loop_b
+    lt b a
+    jumpif next_a
+
+    mul a b product
+
+    # Only check if larger than current largest
+    lteq product largest
+    jumpif next_b
+
+    # Check if product is palindrome
+    # Extract digits into array (max 6 digits for 999*999=998001)
+    set digit_count 0
+    copy product num
+
+label extract_digits
+    eq num 0
+    jumpif check_palindrome
+
+    # Get last digit using mod
+    mod num 10 d
+    seta digits digit_count d
+    add digit_count 1 digit_count
+
+    # Integer division: subtract remainder then divide
+    sub num d num
+    div num 10 num
+    jump extract_digits
+
+label check_palindrome
+    # Check if digits array is a palindrome
+    set left 0
+    sub digit_count 1 right
+
+label palindrome_loop
+    gteq left right
+    jumpif is_palindrome
+
+    geta digits left ld
+    geta digits right rd
+    noteq ld rd
+    jumpif next_b
+
+    add left 1 left
+    sub right 1 right
+    jump palindrome_loop
+
+label is_palindrome
+    copy product largest
+
+label next_b
+    sub b 1 b
+    jump loop_b
+
+label next_a
+    sub a 1 a
+    jump loop_a
+
+label done
+    print largest
+    halt

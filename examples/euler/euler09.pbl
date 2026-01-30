@@ -1,0 +1,48 @@
+# Project Euler Problem 9
+# Find the product abc where a^2 + b^2 = c^2 and a + b + c = 1000
+
+set a 1
+
+label loop_a
+    # a can be at most 332 (since a < b < c and a+b+c=1000)
+    gt a 332
+    jumpif done
+
+    # b starts at a+1
+    add a 1 b
+
+label loop_b
+    # c = 1000 - a - b
+    sub 1000 a temp
+    sub temp b c
+
+    # b must be less than c
+    gteq b c
+    jumpif next_a
+
+    # Check if a^2 + b^2 = c^2
+    mul a a a_sq
+    mul b b b_sq
+    mul c c c_sq
+    add a_sq b_sq sum_sq
+
+    eq sum_sq c_sq
+    jumpnot next_b
+
+    # Found it! Print a*b*c
+    mul a b product
+    mul product c product
+    print product
+    halt
+
+label next_b
+    add b 1 b
+    jump loop_b
+
+label next_a
+    add a 1 a
+    jump loop_a
+
+label done
+    print "No solution found"
+    halt

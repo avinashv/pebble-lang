@@ -1,0 +1,38 @@
+# Project Euler Problem 5
+# Find the smallest positive number evenly divisible by all numbers 1 to 20
+
+# Use LCM: lcm(a,b) = a * b / gcd(a,b)
+# Start with 1 and accumulate LCM with each number 2-20
+
+set result 1
+set i 2
+
+label main_loop
+    gt i 20
+    jumpif done
+
+    # Calculate gcd(result, i) using Euclidean algorithm
+    copy result gcd_a
+    copy i gcd_b
+
+label gcd_loop
+    eq gcd_b 0
+    jumpif gcd_done
+
+    mod gcd_a gcd_b temp
+    copy gcd_b gcd_a
+    copy temp gcd_b
+    jump gcd_loop
+
+label gcd_done
+    # gcd_a now contains gcd(result, i)
+    # lcm = result * i / gcd
+    mul result i product
+    div product gcd_a result
+
+    add i 1 i
+    jump main_loop
+
+label done
+    print result
+    halt

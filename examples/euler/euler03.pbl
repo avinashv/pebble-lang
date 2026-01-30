@@ -1,0 +1,45 @@
+# Project Euler Problem 3
+# Find the largest prime factor of 600851475143
+
+set n 600851475143
+set factor 2
+set largest 1
+
+label loop
+    # If factor squared > n, then n is prime (or 1)
+    mul factor factor sq
+    gt sq n
+    jumpif done
+
+    # Check if factor divides n
+    label divide_loop
+        mod n factor r
+        noteq r 0
+        jumpif next_factor
+
+        # factor divides n, save it and divide
+        copy factor largest
+        div n factor n
+        jump divide_loop
+
+label next_factor
+    # Move to next potential factor
+    # If factor is 2, go to 3, otherwise add 2
+    eq factor 2
+    jumpif add_one
+    add factor 2 factor
+    jump loop
+
+label add_one
+    add factor 1 factor
+    jump loop
+
+label done
+    # If n > 1, it's the largest prime factor
+    gt n 1
+    jumpnot print_largest
+    copy n largest
+
+label print_largest
+    print largest
+    halt
