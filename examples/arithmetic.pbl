@@ -1,19 +1,20 @@
-# Test integer and float arithmetic
+# A quick tour of Pebble's arithmetic.
+# Numbers can be integers or floats, and they mix freely.
 
-# Integers
-set a 10
+# === Integers
+set a 10            # `set` infers the type from the literal; a is an int.
 set b 3
-add a b sum
-print sum
+add a b sum         # sum = a + b. The third operand is the destination.
+print sum           # 13
 
-# Floats
-set x 3.14
+# === Floats
+set x 3.14          # The presence of a decimal makes this a float.
 set y 2.0
-mul x y product
-print product
+mul x y product     # product = x * y.
+print product       # 6.28
 
-# Mixed integers and floats
-add a x mixed
-print mixed
+# === Mixed integers and floats
+add a x mixed       # An int plus a float promotes to float.
+print mixed         # 13.14
 
-halt
+halt                # Stop the program.

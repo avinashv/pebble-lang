@@ -1,41 +1,50 @@
 # Project Euler Problem 3
-# Find the largest prime factor of 600851475143
+# Find the largest prime factor of 600851475143.
+#
+# Standard trial division: repeatedly pull out the smallest factor
+# we can find, dividing it out of n each time. We only need to test
+# factors up to sqrt(n); whatever remains in n at the end (if > 1)
+# is itself prime and is the largest factor.
 
-set n 600851475143
-set factor 2
-set largest 1
+set n 600851475143  # The number to factor. Pebble's numbers handle
+                    # this size fine.
+set factor 2        # Current trial divisor. We'll try 2, 3, 5, 7, 9, ...
+set largest 1       # Largest prime factor seen so far.
 
 label loop
-    # If factor squared > n, then n is prime (or 1)
-    mul factor factor sq
+    # Stop when factor*factor > n. At that point, n itself is either
+    # 1 or a prime larger than every factor we've tried.
+    mul factor factor sq    # sq = factor * factor.
     gt sq n
     jumpif done
 
-    # Check if factor divides n
+    # Pull out as many copies of `factor` from n as possible.
     label divide_loop
-        mod n factor r
-        noteq r 0
-        jumpif next_factor
+        mod n factor r      # r = n mod factor.
+        noteq r 0           # Is r != 0? That is, factor does NOT divide n.
+        jumpif next_factor  # If so, this factor is done; move on.
 
-        # factor divides n, save it and divide
-        copy factor largest
-        div n factor n
-        jump divide_loop
+        # The factor divides n: record it, then divide it out of n.
+        copy factor largest # largest = factor.
+        div n factor n      # n = n / factor.
+        jump divide_loop    # Try the same factor again. It might
+                            # divide n more than once.
 
 label next_factor
-    # Move to next potential factor
-    # If factor is 2, go to 3, otherwise add 2
+    # Advance to the next candidate factor. After 2 we only want
+    # odd numbers, so jump from 2 to 3, then step by 2 thereafter.
     eq factor 2
     jumpif add_one
     add factor 2 factor
     jump loop
 
 label add_one
-    add factor 1 factor
+    add factor 1 factor     # Only used to step from 2 to 3.
     jump loop
 
 label done
-    # If n > 1, it's the largest prime factor
+    # If anything > 1 remains in n, it's a prime larger than every
+    # factor we tried, so it's our answer.
     gt n 1
     jumpnot print_largest
     copy n largest

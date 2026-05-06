@@ -1,24 +1,26 @@
-# Create and sum an array
+# Build a small array, then loop through it and sum the elements.
+# This is the same loop pattern as a `for` in other languages,
+# rebuilt from labels and jumps.
 
-array nums 5
-seta nums 0 10
-seta nums 1 20
-seta nums 2 30
-seta nums 3 40
-seta nums 4 50
+array nums 5            # Capacity-5 array, zero-initialised.
+seta nums 0 10          # nums[0] = 10.
+seta nums 1 20          # nums[1] = 20.
+seta nums 2 30          # nums[2] = 30.
+seta nums 3 40          # nums[3] = 40.
+seta nums 4 50          # nums[4] = 50.
 
-set sum 0
-set i 0
-len nums size
+set sum 0               # Accumulator for the running total.
+set i 0                 # Loop index.
+len nums size           # size = current length of nums (5 here).
 
 label loop
-    lt i size
-    jumpnot done
-    geta nums i val
-    add sum val sum
-    add i 1 i
+    lt i size           # Is i < size? This is the loop guard.
+    jumpnot done        # If not, we've visited every element.
+    geta nums i val     # val = nums[i].
+    add sum val sum     # sum = sum + val.
+    add i 1 i           # i = i + 1.
     jump loop
 
 label done
-    print sum
+    print sum           # 10 + 20 + 30 + 40 + 50 = 150.
     halt

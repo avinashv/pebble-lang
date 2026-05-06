@@ -1,25 +1,32 @@
 # Project Euler Problem 2
-# Sum of even Fibonacci numbers <= 4000000
+# Sum of even Fibonacci numbers <= 4,000,000.
+#
+# We generate Fibonacci numbers iteratively, and add each one
+# to the running sum if it's even.
 
-set a 1
-set b 2
-set sum 0
+set a 1             # Previous Fibonacci value.
+set b 2             # Current Fibonacci value, the candidate we test
+                    # for evenness on each iteration.
+set sum 0           # Running total of even Fibonacci numbers.
 
 label loop
-    gt b 4000000
-    jumpif done
+    gt b 4000000    # Have we exceeded the limit?
+    jumpif done     # If yes, stop.
 
-    # Check if b is even
-    mod b 2 r
-    eq r 0
-    jumpnot skip
-    add sum b sum
+    # Is b even? (b mod 2 == 0)
+    mod b 2 r       # r = b mod 2.
+    eq r 0          # Flag: is r == 0?
+    jumpnot skip    # If NOT even, skip the add.
+    add sum b sum   # sum = sum + b.
 
 label skip
-    # Next Fibonacci: a, b -> b, a+b
-    add a b next
-    copy b a
-    copy next b
+    # Advance the Fibonacci pair: (a, b) -> (b, a+b).
+    # We need a temporary because `copy b a` would clobber the
+    # value of `a` that we still need to compute a+b. So we
+    # compute a+b first, then shift.
+    add a b next    # next = a + b.
+    copy b a        # a = b.
+    copy next b     # b = next.
     jump loop
 
 label done

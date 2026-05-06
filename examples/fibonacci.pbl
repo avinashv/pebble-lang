@@ -1,19 +1,25 @@
-# Fibonacci calculator
+# Print the first N Fibonacci numbers, where N is asked at runtime.
+# Each number is the sum of the previous two: 1, 1, 2, 3, 5, 8, ...
 
-read "How many Fibonacci numbers? " count
+read "How many Fibonacci numbers? " count   # User picks how many to print.
 
-set a 1
-set b 1
-set i 0
+set a 1             # The current Fibonacci value.
+set b 1             # The next one.
+set i 0             # Iteration counter (0 up to count-1).
 
 label loop
-    lt i count
-    jumpnot done
-    print a
-    add a b next
-    copy b a
-    copy next b
-    add i 1 i
+    lt i count      # Have we printed enough yet?
+    jumpnot done    # If i is no longer < count, exit.
+    print a         # Emit the current value.
+
+    # Slide the (a, b) window forward one step: (a, b) -> (b, a+b).
+    # We need a temporary because writing to `a` first would clobber
+    # the value we still need for the second assignment.
+    add a b next    # next = a + b.
+    copy b a        # a = b.
+    copy next b     # b = next.
+
+    add i 1 i       # i = i + 1.
     jump loop
 
 label done

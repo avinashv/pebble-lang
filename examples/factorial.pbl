@@ -1,15 +1,17 @@
-# Calculate a factorial of a given number
+# Compute the factorial of a number entered by the user.
+# factorial(n) = n * (n-1) * (n-2) * ... * 1.
 
-read "Enter a number: " n
-copy n result
+read "Enter a number: " n   # Prompt the user; the typed value lands in n.
+copy n result               # result starts as a copy of n. We'll multiply
+                            # it by n-1, n-2, ... down to 2.
 
 label loop
-    sub n 1 n
-    gt n 1
-    jumpnot done
-    mul result n result
-    jump loop
+    sub n 1 n               # Decrement: n = n - 1.
+    gt n 1                  # Is n still greater than 1?
+    jumpnot done            # If not (n has reached 1), we're finished.
+    mul result n result     # result = result * n.
+    jump loop               # Round we go again.
 
 label done
-    print result
+    print result            # Output the final factorial.
     halt

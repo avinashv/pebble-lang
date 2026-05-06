@@ -1,12 +1,22 @@
-# Hello, World!
-set msg "Hello, World!"
-print msg
+# Hello, World, plus a quick interactive greeting.
+# Two tiny programs in one file.
 
-# Greet the user
-read "What is your name? " name
-set greeting "Hello, "
-concat greeting name greeting
-concat greeting "!" greeting
-print greeting
+# === Program 1: print a fixed message.
+set msg "Hello, World!"   # `set` creates a variable and assigns a value.
+                          # Strings live in double quotes.
+print msg                 # Send the value to stdout.
 
-halt
+# === Program 2: ask the user for their name and greet them.
+read "What is your name? " name   # Show the prompt, read a line of input,
+                                  # and store the result in `name`.
+set greeting "Hello, "            # Build up the greeting piece by piece.
+concat greeting name greeting     # greeting = greeting + name. The third
+                                  # operand is the destination, and it's
+                                  # fine to reuse `greeting` as both source
+                                  # and dest.
+concat greeting "!" greeting      # Tack on the trailing punctuation.
+print greeting                    # Prints: Hello, <name>!
+
+halt                              # Stop execution. Without `halt`, the
+                                  # interpreter would keep running off
+                                  # the end of the file.

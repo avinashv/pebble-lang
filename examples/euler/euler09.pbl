@@ -1,46 +1,55 @@
 # Project Euler Problem 9
-# Find the product abc where a^2 + b^2 = c^2 and a + b + c = 1000
+# Find the Pythagorean triplet (a, b, c) with
+#   a^2 + b^2 = c^2   AND   a + b + c = 1000
+# and print a*b*c.
+#
+# Brute-force iterate a, then b, computing c from the perimeter
+# constraint: c = 1000 - a - b. Because a < b < c and a+b+c = 1000,
+# a is bounded by 332.
 
-set a 1
+set a 1             # Outer loop counter.
 
 label loop_a
-    # a can be at most 332 (since a < b < c and a+b+c=1000)
+    # If a >= 333, then with a < b < c and sum 1000 we'd need
+    # b > 333 and c > 334, summing to more than 1000.
     gt a 332
     jumpif done
 
-    # b starts at a+1
-    add a 1 b
+    add a 1 b       # b starts just above a, since we want a < b.
 
 label loop_b
-    # c = 1000 - a - b
-    sub 1000 a temp
-    sub temp b c
+    # Derive c from the perimeter: c = 1000 - a - b.
+    # We need a temp because `sub` takes exactly two source operands
+    # plus a destination, so we can't write 1000 - a - b inline.
+    sub 1000 a temp     # temp = 1000 - a.
+    sub temp b c        # c    = temp - b, that is, 1000 - a - b.
 
-    # b must be less than c
+    # We require a < b < c. If b has caught up to c, no valid
+    # triple is possible for this a, so move on.
     gteq b c
     jumpif next_a
 
-    # Check if a^2 + b^2 = c^2
+    # Test a^2 + b^2 == c^2.
     mul a a a_sq
     mul b b b_sq
     mul c c c_sq
     add a_sq b_sq sum_sq
 
     eq sum_sq c_sq
-    jumpnot next_b
+    jumpnot next_b      # Not a Pythagorean triple; try the next b.
 
-    # Found it! Print a*b*c
-    mul a b product
-    mul product c product
+    # Found the unique solution. Print a*b*c and stop.
+    mul a b product         # product = a*b.
+    mul product c product   # product = a*b*c.
     print product
     halt
 
 label next_b
-    add b 1 b
+    add b 1 b           # b = b + 1.
     jump loop_b
 
 label next_a
-    add a 1 a
+    add a 1 a           # a = a + 1.
     jump loop_a
 
 label done

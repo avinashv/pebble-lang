@@ -1,29 +1,32 @@
 # Project Euler Problem 6
-# Difference between sum of squares and square of sum
+# (Sum of squares of 1..100) vs (square of sum of 1..100):
+# compute the difference.
+#
+# We accumulate both values in a single pass through 1..100.
 
-set sum_of_sq 0
-set sum 0
+set sum_of_sq 0     # Running total of n*n.
+set sum 0           # Running total of n.
 set n 1
 
 label loop
     gt n 100
-    jumpif calc
+    jumpif calc     # We've covered 1..100; jump to the final calc.
 
-    # sum_of_sq += n*n
-    mul n n sq
+    # sum_of_sq = sum_of_sq + n*n.
+    mul n n sq              # sq = n*n.
     add sum_of_sq sq sum_of_sq
 
-    # sum += n
+    # sum = sum + n.
     add sum n sum
 
-    add n 1 n
+    add n 1 n               # n = n + 1.
     jump loop
 
 label calc
-    # square of sum
+    # Square of the sum.
     mul sum sum sq_of_sum
 
-    # difference
+    # Difference: (sum)^2 - (sum of squares).
     sub sq_of_sum sum_of_sq result
     print result
     halt

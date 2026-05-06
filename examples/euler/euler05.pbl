@@ -1,32 +1,38 @@
 # Project Euler Problem 5
-# Find the smallest positive number evenly divisible by all numbers 1 to 20
+# Find the smallest positive number evenly divisible by every
+# integer from 1 to 20.
+#
+# Key identity: lcm(a, b) = a * b / gcd(a, b). The smallest number
+# divisible by 1..20 is lcm(1, 2, 3, ..., 20), and lcm is
+# associative, so we can fold from left to right:
+#   result = 1
+#   for i in 2..20: result = lcm(result, i)
+# We compute gcd with the classic Euclidean algorithm, repeatedly
+# replacing the pair (a, b) with (b, a mod b) until b is 0.
 
-# Use LCM: lcm(a,b) = a * b / gcd(a,b)
-# Start with 1 and accumulate LCM with each number 2-20
-
-set result 1
-set i 2
+set result 1        # Running LCM. The lcm of nothing is 1.
+set i 2             # Next integer to fold in.
 
 label main_loop
     gt i 20
-    jumpif done
+    jumpif done     # Past 20; we're finished.
 
-    # Calculate gcd(result, i) using Euclidean algorithm
-    copy result gcd_a
-    copy i gcd_b
+    # === Compute gcd(result, i) into gcd_a using Euclid's algorithm.
+    copy result gcd_a   # gcd_a and gcd_b are scratch variables that get
+    copy i gcd_b        # mutated by the gcd loop below.
 
 label gcd_loop
     eq gcd_b 0
-    jumpif gcd_done
+    jumpif gcd_done     # When b hits 0, a holds the gcd.
 
-    mod gcd_a gcd_b temp
-    copy gcd_b gcd_a
-    copy temp gcd_b
+    mod gcd_a gcd_b temp    # temp  = gcd_a mod gcd_b.
+    copy gcd_b gcd_a        # gcd_a = gcd_b.
+    copy temp gcd_b         # gcd_b = temp.
     jump gcd_loop
 
 label gcd_done
-    # gcd_a now contains gcd(result, i)
-    # lcm = result * i / gcd
+    # gcd_a now holds gcd(result, i).
+    # Update result to lcm(result, i) = result * i / gcd.
     mul result i product
     div product gcd_a result
 

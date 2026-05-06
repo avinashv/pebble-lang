@@ -1,52 +1,63 @@
 # Project Euler Problem 7
-# Find the 10001st prime number
+# Find the 10001st prime number.
+#
+# We test candidates 2, 3, 5, 7, 9, 11, ... in order, asking the
+# `is_prime` subroutine about each one. We stop when we've found
+# our 10001st prime.
 
-set count 0
-set candidate 2
+set count 0         # How many primes we've found so far.
+set candidate 2     # The number we're currently testing.
 
 label main_loop
-    # Check if candidate is prime
-    call is_prime
+    call is_prime               # Asks: is `candidate` prime?
+                                # Writes the answer to is_prime_result
+                                # (1 = yes, 0 = no).
     eq is_prime_result 0
-    jumpif next_candidate
+    jumpif next_candidate       # Not prime; skip the bookkeeping.
 
-    # Found a prime
-    add count 1 count
+    # candidate is prime.
+    add count 1 count           # count = count + 1.
     eq count 10001
-    jumpif done
+    jumpif done                 # Got our answer.
 
 label next_candidate
-    # Next candidate: if 2, go to 3, otherwise add 2
+    # Advance to the next candidate. After 2 we only want odd
+    # numbers: 2 -> 3, then step by 2.
     eq candidate 2
     jumpif add_one
     add candidate 2 candidate
     jump main_loop
 
 label add_one
-    add candidate 1 candidate
+    add candidate 1 candidate   # Only used to step from 2 to 3.
     jump main_loop
 
 label done
-    print candidate
+    print candidate             # This is the 10001st prime.
     halt
 
-# Subroutine: check if candidate is prime
-# Sets is_prime_result to 1 if prime, 0 if not
+# === Subroutine: is `candidate` prime?
+# Reads:  candidate.
+# Writes: is_prime_result   (1 if prime, 0 otherwise).
+#
+# All variables are global in Pebble, so we communicate with the
+# caller through shared names, the same way assembly subroutines
+# share registers.
 label is_prime
-    set is_prime_result 1
+    set is_prime_result 1       # Assume prime; refute below.
 
-    # 1 is not prime
+    # 1 is not prime.
     eq candidate 1
     jumpnot check_two
     set is_prime_result 0
     ret
 
 label check_two
-    # 2 is prime
+    # 2 is prime; return early without further checks.
     eq candidate 2
     jumpif prime_ret
 
-    # Even numbers > 2 are not prime
+    # Any other even number is composite.
     mod candidate 2 r
     eq r 0
     jumpnot start_check
@@ -54,24 +65,27 @@ label check_two
     ret
 
 label start_check
+    # Try odd divisors 3, 5, 7, ... up to sqrt(candidate).
+    # If divisor*divisor > candidate, no further divisor can work,
+    # so candidate must be prime.
     set divisor 3
 
 label prime_loop
     mul divisor divisor sq
     gt sq candidate
-    jumpif prime_ret
+    jumpif prime_ret            # Passed the sqrt; nothing divides it.
 
     mod candidate divisor r
     eq r 0
-    jumpnot next_divisor
+    jumpnot next_divisor        # Divisor doesn't divide; try the next one.
 
-    # Found a divisor, not prime
+    # The divisor divides candidate, so candidate is not prime.
     set is_prime_result 0
     ret
 
 label next_divisor
-    add divisor 2 divisor
+    add divisor 2 divisor       # Advance by 2 to stay on odd numbers.
     jump prime_loop
 
 label prime_ret
-    ret
+    ret                         # is_prime_result was already 1.

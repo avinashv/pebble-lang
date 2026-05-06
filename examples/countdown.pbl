@@ -1,13 +1,17 @@
-# Countdown
+# Count down from 5 to 1, then announce liftoff.
+# A textbook example of a loop built from a label, a comparison,
+# and a conditional jump.
 
-set n 5
+set n 5             # The counter we'll decrement each iteration.
 
-label loop
-    print n
-    sub n 1 n
-    gt n 0
-    jumpif loop
+label loop          # Top of the loop. `label` defines a jump target;
+                    # it does not affect execution flow on its own.
+    print n         # Show the current value of n.
+    sub n 1 n       # n = n - 1. Decrement in place.
+    gt n 0          # Is n > 0? The result goes into the comparison flag.
+    jumpif loop     # If the flag is true (n is still positive),
+                    # jump back to the top and print the next value.
 
-print "Liftoff!"
+print "Liftoff!"    # We only reach this line once the loop falls through.
 
-halt
+halt                # Stop execution.

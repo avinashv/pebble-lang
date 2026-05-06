@@ -1,10 +1,15 @@
-# Demonstrate subroutine calls
+# Define and call a subroutine.
+# Subroutines in Pebble are entered with `call <label>` and exited
+# with `ret`. Variables are global, so the subroutine sees and
+# mutates the same `x` the caller set.
 
-set x 5
-call double
-print x
-halt
+set x 5             # Initial value.
+call double         # Transfer to `label double`. The interpreter
+                    # remembers where to come back to.
+print x             # x is now 10.
+halt                # Stop here, BEFORE we walk into the subroutine
+                    # body as if it were ordinary code.
 
 label double
-    mul x 2 x
-    ret
+    mul x 2 x       # x = x * 2.
+    ret             # Return to the instruction after `call double`.

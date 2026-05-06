@@ -1,32 +1,49 @@
 # Project Euler Problem 1
-# Find the sum of all multiples of 3 or 5 below 1000
+# Find the sum of all multiples of 3 or 5 below 1000.
+#
+# Strategy: walk every integer n from 1 up to 999, and whenever n is
+# divisible by 3 OR by 5, add it to a running total. Pebble has no
+# structured loops (no `while`/`for`), so we build the loop ourselves
+# out of labels and jumps, much like writing assembly.
 
-set sum 0
-set n 1
+# === Setup
+set sum 0           # Running total. `set` creates the variable on first use.
+set n 1             # Loop counter. We'll iterate n = 1, 2, 3, ...
 
-label loop
-    lt n 1000
-    jumpnot done
+# === Loop
+label loop          # Mark the top of the loop so we can jump back here.
 
-    # Check if divisible by 3
-    mod n 3 r3
-    eq r3 0
-    jumpif add_it
+    lt n 1000       # Is n < 1000? The result isn't stored in a variable.
+                    # It goes into an internal "comparison flag" that the
+                    # next jumpif/jumpnot will read.
+    jumpnot done    # If the flag is false (n is NOT < 1000), leave the
+                    # loop by jumping to the `done` label below.
 
-    # Check if divisible by 5
-    mod n 5 r5
-    eq r5 0
-    jumpif add_it
+    # Test 1: Is n divisible by 3?
+    mod n 3 r3      # r3 = n mod 3. The remainder; r3 is auto-created.
+    eq r3 0         # Set the comparison flag: is r3 == 0?
+    jumpif add_it   # If yes, n is a multiple of 3, so go add it.
 
-    jump next
+    # Test 2: Is n divisible by 5?
+    mod n 5 r5      # r5 = n mod 5.
+    eq r5 0         # Flag: is r5 == 0?
+    jumpif add_it   # If yes, n is a multiple of 5, so go add it.
+
+    jump next       # Neither test matched, so skip the add step.
 
 label add_it
-    add sum n sum
+    add sum n sum   # sum = sum + n. The third operand is the destination,
+                    # and it's fine to reuse `sum` as both source and dest.
+                    # Note: there's no `jump next` here. A label doesn't
+                    # stop execution, it's just a named address, so we fall
+                    # straight through into the `next` block below.
 
 label next
-    add n 1 n
-    jump loop
+    add n 1 n       # n = n + 1. Advance the counter.
+    jump loop       # Go back to the top and test the new n.
 
+# === Done
 label done
-    print sum
-    halt
+    print sum       # Write the final total to stdout.
+    halt            # Stop the program. Without this, the interpreter
+                    # would keep executing off the end of the file.

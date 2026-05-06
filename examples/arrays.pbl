@@ -1,53 +1,58 @@
-# Comprehensive array and len test
+# A guided tour of every array operation Pebble offers.
+# Arrays hold numbers only, are zero-initialised, and have a fixed
+# capacity but a variable length you can grow with `push` and shrink
+# with `pop`. `len` reports the current length.
 
-# Basic array creation and access
+# === Basic array creation and access
 print "Basic array"
-array nums 3
-seta nums 0 10
-seta nums 1 20
-seta nums 2 30
-print nums
+array nums 3        # Create `nums` with capacity 3, all elements = 0.
+seta nums 0 10      # nums[0] = 10.
+seta nums 1 20      # nums[1] = 20.
+seta nums 2 30      # nums[2] = 30.
+print nums          # Printing an array dumps its contents.
 
-# Get array element
+# === Get an array element
 print "Get element"
-geta nums 1 val
-print val
+geta nums 1 val     # val = nums[1]. The read counterpart of seta.
+print val           # 20
 
-# Len on array
+# === Length of an array
 print "Array length"
-len nums size
-print size
+len nums size       # size = number of elements currently in nums.
+print size          # 3
 
-# Len on string
+# === Length of a string
 print "String length"
 set greeting "Hello, World!"
-len greeting str_len
-print str_len
+len greeting str_len    # `len` works on strings too: character count.
+print str_len           # 13
 
-# Push and pop (using pop to shrink, then push to grow)
+# === Push and pop (stack-style operations)
 print "Push and pop"
-array stack 5
-print stack
+array stack 5       # Capacity-5 array, length-5 (filled with zeros).
+print stack         # [0, 0, 0, 0, 0]
 
-# Pop all elements to make room for push
+# Pop the existing zeros so we have room to push new values.
+# `pop` removes the last element and writes it to the destination.
+pop stack x         # x = stack[len-1], then length shrinks by 1.
+pop stack x         # We don't actually care about x here.
 pop stack x
 pop stack x
 pop stack x
-pop stack x
-pop stack x
-len stack stack_len
-print stack_len
+len stack stack_len # Length is now 0.
+print stack_len     # 0
 
-# Now push elements
+# Now push values back on. `push` appends to the end and grows the
+# length; it fails if the array is already at capacity.
 push stack 100
 push stack 200
 push stack 300
-print stack
-pop stack top
-print top
-print stack
+print stack         # [100, 200, 300]
+pop stack top       # top = 300, stack length is now 2.
+print top           # 300
+print stack         # [100, 200]
 
-# Loop through array
+# === Loop through an array
 print "Loop through array"
 array data 5
 seta data 0 2
@@ -56,50 +61,54 @@ seta data 2 6
 seta data 3 8
 seta data 4 10
 
-set i 0
-set total 0
-len data n
+set i 0             # Index.
+set total 0         # Accumulator.
+len data n          # Cache the length so we don't recompute each iteration.
 
 label loop
-    lt i n
-    jumpnot done
-    geta data i val
-    add total val total
-    add i 1 i
+    lt i n          # Is i < n?
+    jumpnot done    # If not, we're past the end.
+    geta data i val # val = data[i].
+    add total val total     # total = total + val.
+    add i 1 i               # i = i + 1.
     jump loop
 
 label done
-print total
+print total         # 2 + 4 + 6 + 8 + 10 = 30.
 
-# Deep copy arrays
+# === Deep copy arrays
 print "Deep copy"
 array original 3
 seta original 0 1
 seta original 1 2
 seta original 2 3
-copy original clone
-seta clone 0 999
-print original
-print clone
+copy original clone     # `copy` deep-copies arrays. Mutating `clone`
+                        # after this point will NOT affect `original`.
+seta clone 0 999        # Change clone[0].
+print original          # [1, 2, 3]   (unchanged)
+print clone             # [999, 2, 3]
 
-# Using arrays with subroutines
+# === Using arrays with subroutines
 print "Subroutine with array"
 array values 4
 seta values 0 5
 seta values 1 10
 seta values 2 15
 seta values 3 20
-call sum_array
-print result
+call sum_array      # `call` saves the return address and jumps to the
+                    # label. The subroutine reads `values` and writes
+                    # `result`, both of which are global.
+print result        # 5 + 10 + 15 + 20 = 50.
 
-halt
+halt                # Stop here so we don't fall into the subroutine
+                    # body below as if it were ordinary code.
 
-# Subroutine to sum the 'values' array into 'result'
+# === Subroutine: sum the global `values` array into the global `result`.
 label sum_array
-    set result 0
+    set result 0    # Zero the accumulator each time we're called.
     set idx 0
     len values count
-    
+
     label sum_loop
         lt idx count
         jumpnot sum_done
@@ -107,6 +116,7 @@ label sum_array
         add result v result
         add idx 1 idx
         jump sum_loop
-    
+
     label sum_done
-    ret
+    ret             # Pop the return address that `call` pushed and
+                    # resume execution there.

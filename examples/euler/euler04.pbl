@@ -1,72 +1,80 @@
 # Project Euler Problem 4
-# Find the largest palindrome made from the product of two 3-digit numbers
+# Find the largest palindrome made from the product of two
+# 3-digit numbers.
+#
+# Brute force: iterate a from 999 downward, and for each a iterate
+# b from 999 down to a (b < a means we'd just be repeating products).
+# For each product we extract its decimal digits into an array,
+# then check whether that array reads the same forwards and
+# backwards. If so, and it beats our current best, save it.
 
-set largest 0
-array digits 6
-set a 999
+set largest 0       # Best palindrome found so far.
+array digits 6      # Holds extracted digits (max 6 for 999*999=998001).
+set a 999           # Outer factor.
 
 label loop_a
-    lt a 100
+    lt a 100        # a has dropped into the 2-digit range; we're done.
     jumpif done
 
-    set b 999
+    set b 999       # Reset inner factor to 999 each time a changes.
 
 label loop_b
-    lt b a
-    jumpif next_a
+    lt b a          # Only consider b >= a, to avoid duplicate work.
+    jumpif next_a   # If b < a, drop a and restart b.
 
-    mul a b product
+    mul a b product # product = a * b.
 
-    # Only check if larger than current largest
+    # Quick reject: if product can't beat the current largest, skip.
     lteq product largest
     jumpif next_b
 
-    # Check if product is palindrome
-    # Extract digits into array (max 6 digits for 999*999=998001)
+    # === Extract decimal digits of `product` into `digits[]`.
     set digit_count 0
-    copy product num
+    copy product num    # Work on a copy so `product` survives.
 
 label extract_digits
     eq num 0
-    jumpif check_palindrome
+    jumpif check_palindrome     # All digits extracted.
 
-    # Get last digit using mod
-    mod num 10 d
-    seta digits digit_count d
+    mod num 10 d                # d = last digit of num.
+    seta digits digit_count d   # digits[digit_count] = d.
     add digit_count 1 digit_count
 
-    # Integer division: subtract remainder then divide
-    sub num d num
-    div num 10 num
+    # Pebble's `div` is true division (it can produce floats), so
+    # to do integer division we first subtract the remainder, then
+    # divide; that guarantees the result is an exact integer.
+    sub num d num               # num = num - d, so it's a multiple of 10.
+    div num 10 num              # num = num / 10.
     jump extract_digits
 
+    # === Palindrome check: walk two indices toward each other.
 label check_palindrome
-    # Check if digits array is a palindrome
     set left 0
-    sub digit_count 1 right
+    sub digit_count 1 right     # right = digit_count - 1.
 
 label palindrome_loop
-    gteq left right
+    gteq left right             # Have the pointers met or crossed?
     jumpif is_palindrome
 
-    geta digits left ld
-    geta digits right rd
-    noteq ld rd
-    jumpif next_b
+    geta digits left ld         # ld = digits[left].
+    geta digits right rd        # rd = digits[right].
+    noteq ld rd                 # If they differ, this isn't a palindrome.
+    jumpif next_b               # Bail out and try the next b.
 
     add left 1 left
     sub right 1 right
     jump palindrome_loop
 
 label is_palindrome
-    copy product largest
+    copy product largest        # Save the new best.
+                                # (Falls through into next_b below.)
 
 label next_b
-    sub b 1 b
+    sub b 1 b                   # b = b - 1.
     jump loop_b
 
 label next_a
-    sub a 1 a
+    sub a 1 a                   # a = a - 1.
     jump loop_a
 
 label done
